@@ -23,6 +23,7 @@ routes.patch('/user/password/:id', checkAuth, UserController.updatePassword)
 
 //Customer
 routes.get('/customer/list', CustomerController.list)
+routes.get('/customer/list/filter', CustomerController.listFiltered)
 routes.post('/customer/create', CustomerController.add)
 routes.get('/customer/:id', CustomerController.readById)
 routes.delete('/customer/delete/:id', CustomerController.delete)

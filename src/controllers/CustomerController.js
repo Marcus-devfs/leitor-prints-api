@@ -11,6 +11,29 @@ class CustomerController {
         }
     }
 
+    listFiltered = async (req, res) => {
+        try {
+            const { name = '' } = req.query
+            console.log(name)
+
+            const removeAccents = (str) => {
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            }
+
+            const normalizedQuery = removeAccents(name);
+
+            const customers = await Customer.find({
+                name: {
+                    $regex: new RegExp(removeAccents(normalizedQuery), "i")
+                }
+            }).exec();
+            res.status(200).json({ success: true, customers })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false })
+        }
+    }
+
     add = async (req, res) => {
 
         try {
