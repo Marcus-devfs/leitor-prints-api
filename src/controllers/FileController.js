@@ -7,7 +7,8 @@ const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
 exports.upload = async (req, res) => {
    try {
       const { originalName: name, size, key, location: url = '', } = req.file
-      const { analyticsId = null } = req.params
+      const { analyticsId = null } = req.query
+
 
       // Criação do worker
       const worker = await createWorker();
@@ -19,29 +20,26 @@ exports.upload = async (req, res) => {
 
       // Use o URL do arquivo armazenado no S3
       const { data: { text } } = await worker.recognize(url);
+      // const analyticsDataTranscription = await formattedTextFromImage(text)
 
-      console.log('text: ', text)
+      const file = await File.create({
+         name,
+         size,
+         url,
+         key,
+         analyticsId,
+         transcription: text
+      })
 
-      const analyticsData = await formattedTextFromImage(text)
-      console.log('analyticsData: ', analyticsData)
+      const updatedData = { $push: { files: file._id } };
 
-      // const file = await File.create({
-      //    name,
-      //    size,
-      //    url,
-      //    key,
-      //    analyticsId,
-      // })
-
-      // const updatedData = { $push: { files: file._id } };
-
-      // if (file?._id) {
-      //    if (analyticsId) {
-      //       const updateFile = await Analytics.findByIdAndUpdate(analyticsId, updatedData, { new: true })
-      //       return res.status(201).json({ file, updateFile: updateFile?._id })
-      //    }
-      //    return res.status(201).json({ file, success: true })
-      // }
+      if (file?._id) {
+         if (analyticsId) {
+            const updateFile = await Analytics.findByIdAndUpdate(analyticsId, updatedData, { new: true })
+            return res.status(201).json({ file, updateFile: updateFile?._id })
+         }
+         return res.status(201).json({ file, success: true })
+      }
       res.status(500).json({ success: false })
    } catch (error) {
       console.log(error)
