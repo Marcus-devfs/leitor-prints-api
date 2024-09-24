@@ -143,8 +143,15 @@ class UserController {
          const { id } = req.params
          const { userData } = req.body
 
-         const response = await UserModel.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).exec()
+         if (userData.password && userData.confirmPassword) {
+            const newPass = userData.password
+            const password = await bcrypt.hash(newPass, 10)
+            await UserModel.findByIdAndUpdate(id, { password: password }, { new: true })
+         }
 
+         delete userData.password
+         delete userData.confirmPassword
+         const response = await UserModel.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).exec()
          res.status(200).json({ user: response, success: true })
       } catch (error) {
          res.status(400).json({ error, success: false })

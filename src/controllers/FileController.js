@@ -15,31 +15,32 @@ exports.upload = async (req, res) => {
 
       // Aguarde a inicialização do worker
       await worker.load();
-      await worker.loadLanguage('pt');
-      await worker.initialize('pt');
+      await worker.loadLanguage('por+eng');
+      await worker.initialize('por+eng');
 
       // Use o URL do arquivo armazenado no S3
       const { data: { text } } = await worker.recognize(url);
-      // const analyticsDataTranscription = await formattedTextFromImage(text)
+      const analyticsDataTranscription = await formattedTextFromImage(text)
 
-      const file = await File.create({
-         name,
-         size,
-         url,
-         key,
-         analyticsId,
-         transcription: text
-      })
+      console.log(analyticsDataTranscription)
+      // const file = await File.create({
+      //    name,
+      //    size,
+      //    url,
+      //    key,
+      //    analyticsId,
+      //    transcription: text
+      // })
 
-      const updatedData = { $push: { files: file._id } };
+      // const updatedData = { $push: { files: file._id } };
 
-      if (file?._id) {
-         if (analyticsId) {
-            const updateFile = await Analytics.findByIdAndUpdate(analyticsId, updatedData, { new: true })
-            return res.status(201).json({ file, updateFile: updateFile?._id })
-         }
-         return res.status(201).json({ file, success: true })
-      }
+      // if (file?._id) {
+      //    if (analyticsId) {
+      //       const updateFile = await Analytics.findByIdAndUpdate(analyticsId, updatedData, { new: true })
+      //       return res.status(201).json({ file, updateFile: updateFile?._id })
+      //    }
+      //    return res.status(201).json({ file, success: true })
+      // }
       res.status(500).json({ success: false })
    } catch (error) {
       console.log(error)
