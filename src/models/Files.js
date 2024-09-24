@@ -11,22 +11,11 @@ const fileSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  category: {
-    type: String,
-    default: null
-  },
-  section: {
-    type: String,
-    default: "O campo 'Seção' é obrigatório"
-  },
-  namePerfil: {
-    type: String,
-    default: null
-  },
-  level: {
-    type: String,
-    default: null
-  }
+  analyticsId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Analytics',
+    required: false
+}
 });
 
 const File = mongoose.model("File", fileSchema);

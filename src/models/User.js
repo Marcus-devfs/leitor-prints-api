@@ -12,6 +12,12 @@ const userSchema = new Schema({
       lowercase: true,
       unique: true
    },
+   phone: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      unique: false
+   },
    password: {
       type: String,
       select: false,

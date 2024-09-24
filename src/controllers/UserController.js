@@ -8,10 +8,10 @@ class UserController {
 
    list = async (req, res) => {
       try {
-         const user = await UserModel.find().exec()
-         res.status(201).json(user)
+         const users = await UserModel.find().exec()
+         res.status(200).json({ success: true, users })
       } catch (error) {
-         res.status(200).json({ msg: 'Hello MF Planejados!' })
+         res.status(500).json({ success: false })
       }
    }
 
@@ -31,7 +31,7 @@ class UserController {
          const userExists = await UserModel.findOne({ email })
 
          if (userExists) {
-            return res.status(500).json({ msg: 'User exists' })
+            return res.status(500).json({ msg: 'User exists', success: false })
          }
 
          const salt = await bcrypt.genSalt(10)
@@ -42,34 +42,34 @@ class UserController {
             password: passwordHash,
          })
 
-         let html = `
-         <div style="background-color: #f1f1f1; padding: 30px; position: relative;">
-            <div style="max-width: 400px; background-color: #fff; padding: 30px; border-radius: 12px; position: absolute; margin: auto; left: 0; right: 0; top: 0; bottom: 0;">
-               <p style="font-size: 18px; text-align: center;">${newUser?.name},</p>
-               <p style="font-size: 18px; text-align: center;">Você já pode acessar o painel M&F Admin:</p>
-               <p style="font-size: 18px;">https://admin-mfplanejados.vercel.app</p>
-               <p style="font-size: 18px;">Usuário: ${email}</p>
-               <p style="font-size: 18px;">Senha: ${senha}</p>
-            </div>
-         </div>`
+         // let html = `
+         // <div style="background-color: #f1f1f1; padding: 30px; position: relative;">
+         //    <div style="max-width: 400px; background-color: #fff; padding: 30px; border-radius: 12px; position: absolute; margin: auto; left: 0; right: 0; top: 0; bottom: 0;">
+         //       <p style="font-size: 18px; text-align: center;">${newUser?.name},</p>
+         //       <p style="font-size: 18px; text-align: center;">Você já pode acessar o painel M&F Admin:</p>
+         //       <p style="font-size: 18px;">https://admin-mfplanejados.vercel.app</p>
+         //       <p style="font-size: 18px;">Usuário: ${email}</p>
+         //       <p style="font-size: 18px;">Senha: ${senha}</p>
+         //    </div>
+         // </div>`
 
-         sgMail.setApiKey(process.env.NEXT_PUBLIC_SENDGRID_API_KEY);
+         // sgMail.setApiKey(process.env.NEXT_PUBLIC_SENDGRID_API_KEY);
 
-         const msg = {
-            to: email,
-            from: 'edermarce1@yahoo.com.br',
-            subject: 'M&F - Credenciais de Acesso',
-            html
-         };
+         // const msg = {
+         //    to: email,
+         //    from: 'edermarce1@yahoo.com.br',
+         //    subject: 'M&F - Credenciais de Acesso',
+         //    html
+         // };
 
-         sgMail.send(msg, () => console.log({
-            message: `Credentials sent to ${email}`,
-         }));
+         // sgMail.send(msg, () => console.log({
+         //    message: `Credentials sent to ${email}`,
+         // }));
 
-         res.status(201).json(newUser)
+         res.status(201).json({ newUser, success: true })
 
       } catch (error) {
-         res.status(500).json({ error: error.response })
+         res.status(500).json({ error: error.response, success: false })
       }
    }
 
@@ -83,7 +83,7 @@ class UserController {
 
          const result = await bcrypt.compare(password, user.password)
 
-         if (!result) return res.status(401).json({ msg: 'Invalid Credentials' })
+         if (!result) return res.status(401).json({ msg: 'Invalid Credentials', success: false })
 
          const jwtToken = jwt.sign(
             {
@@ -93,9 +93,9 @@ class UserController {
          )
          user.token = jwtToken
 
-         return res.status(200).json(user)
+         return res.status(200).json({ success: true, user })
       } catch (error) {
-         return res.status(500).json({ msg: 'API error' })
+         return res.status(500).json({ msg: 'API error', success: false })
       }
    }
 
@@ -104,9 +104,9 @@ class UserController {
          const { id } = req.params
 
          const user = await UserModel.findById(id)
-         res.status(200).json(user)
+         res.status(200).json({ user, success: true })
       } catch (error) {
-         res.status(200).json({ error })
+         res.status(200).json({ error, success: false })
       }
    }
 
@@ -119,12 +119,12 @@ class UserController {
          if (user) {
             const jwtToken = jwt.sign({ userId: user._id }, process.env.NEXT_PUBLIC_JWT_KEY);
             user.token = jwtToken
-            return res.status(200).json(user)
+            return res.status(200).json({ user, success: true })
          }
 
-         return res.status(500).json({})
+         return res.status(500).json({ success: false })
       } catch (error) {
-         res.status(500).json(error)
+         res.status(500).json({ error: error, success: false })
       }
    }
 
@@ -132,9 +132,9 @@ class UserController {
       try {
          const { id } = req.params
          const deletedUser = await UserModel.findByIdAndDelete(id).exec()
-         res.status(201).json(deletedUser)
+         res.status(200).json({ deletedUser, success: true })
       } catch (error) {
-         res.status(400).json({ error })
+         res.status(400).json({ error, success: false })
       }
    }
 
@@ -145,9 +145,9 @@ class UserController {
 
          const response = await UserModel.findByIdAndUpdate(id, userData, { new: true, runValidators: true }).exec()
 
-         res.status(200).json(response)
+         res.status(200).json({ user: response, success: true })
       } catch (error) {
-         res.status(400).json({ error })
+         res.status(400).json({ error, success: false })
       }
    }
 
@@ -170,9 +170,9 @@ class UserController {
          const password = await bcrypt.hash(newPass, 10)
          const response = await UserModel.findByIdAndUpdate(id, { password: password }, { new: true })
 
-         res.status(201).json(response)
+         res.status(201).json({ response, success: true })
       } catch (error) {
-         res.status(400).json(error)
+         res.status(400).json({ error: error, success: false })
       }
    }
 
