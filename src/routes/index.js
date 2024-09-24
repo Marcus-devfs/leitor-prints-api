@@ -32,7 +32,7 @@ routes.patch('/customer/update/:id', CustomerController.update)
 
 // //File Routes
 routes.get('/filesweb', FileController.getAllFilesWeb)
-routes.post('/upload/:analyticsId', multer(multerConfig).single('file'), FileController.upload)
+routes.post('/file/upload/', multer(multerConfig).single('file'), FileController.upload)
 routes.delete('/upload/:fileId', FileController.delete)
 
 module.exports = routes 
