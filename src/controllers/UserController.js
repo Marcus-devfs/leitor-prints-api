@@ -80,6 +80,8 @@ class UserController {
       try {
          const user = await UserModel.findOne({ email })
             .select('+password')
+            
+         if (!user) return res.status(401).json({ msg: 'Invalid Credentials', success: false })
 
          const result = await bcrypt.compare(password, user.password)
 
@@ -95,6 +97,7 @@ class UserController {
 
          return res.status(200).json({ success: true, user })
       } catch (error) {
+         console.log(error)
          return res.status(500).json({ msg: 'API error', success: false })
       }
    }
