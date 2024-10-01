@@ -1,7 +1,10 @@
+const { S3Client } = require('@aws-sdk/client-s3');
+const { TextractClient, AnalyzeDocumentCommand, DetectDocumentTextCommand } = require('@aws-sdk/client-textract');
 const Analytics = require('../models/Analytics')
 const File = require('../models/Files')
-const { createWorker } = require('tesseract.js');
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
+
+const textract = new TextractClient({ region: 'us-east-1' });
 
 
 exports.upload = async (req, res) => {
@@ -10,19 +13,43 @@ exports.upload = async (req, res) => {
       const { analyticsId = null } = req.query
 
 
-      // Criação do worker
-      const worker = await createWorker();
+      // Função para processar o arquivo no Textract
+      const analyzeWithTextract = async (bucket, fileName) => {
+         const params = {
+            Document: {
+               S3Object: {
+                  Bucket: bucket,
+                  Name: fileName,
+               },
+            },
+         };
 
-      // Aguarde a inicialização do worker
-      await worker.load();
-      await worker.loadLanguage('por+eng');
-      await worker.initialize('por+eng');
+         // Usar Textract para detectar o texto
+         const command = new DetectDocumentTextCommand(params);
+         const result = await textract.send(command);
+         return result;
+      };
 
-      // Use o URL do arquivo armazenado no S3
-      const { data: { text } } = await worker.recognize(url);
-      const analyticsDataTranscription = await formattedTextFromImage(text)
+      const bucketName = process.env.BUCKET_NAME;
+      const fileName = key;
 
-      console.log(analyticsDataTranscription)
+      // Chamar o AWS Textract para analisar o documento
+      const textractResult = await analyzeWithTextract(bucketName, fileName);
+
+      // Extrair o texto detectado
+      let extractedText = '';
+      textractResult.Blocks.forEach(block => {
+         if (block.BlockType === 'LINE') {
+            extractedText += block.Text + '\n';
+         }
+      });
+
+      // Usar a função de formatação no texto extraído
+      // const analyticsDataTranscription = await formattedTextFromImage(extractedText);
+
+      console.log('Texto extraído pelo Textract:', extractedText);
+
+
       // const file = await File.create({
       //    name,
       //    size,
@@ -41,7 +68,9 @@ exports.upload = async (req, res) => {
       //    }
       //    return res.status(201).json({ file, success: true })
       // }
-      res.status(500).json({ success: false })
+      // res.status(500).json({ success: false })
+      return res.status(201).json({ extractedText, success: true })
+
    } catch (error) {
       console.log(error)
       res.status(500).json(error)

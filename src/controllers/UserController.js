@@ -69,6 +69,7 @@ class UserController {
          res.status(201).json({ newUser, success: true })
 
       } catch (error) {
+         console.log(error)
          res.status(500).json({ error: error.response, success: false })
       }
    }
