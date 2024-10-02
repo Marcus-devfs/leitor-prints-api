@@ -1,136 +1,89 @@
-async function formattedTextFromImage(extractedText) {
+async function formattedTextFromImage(text) {
     try {
-        const jsonResult = {
-            platform: "Instagram",
-            type: "Post",
-            date: "",
-            metrics: {
-                likes: 0,
-                comments: 0,
-                shares: 0,
-                saves: 0
-            },
-            overview: {
-                accounts_reached: 0,
-                accounts_engaged: 0,
-                profile_activity: 0
-            },
-            reach: {
-                total_reach: 0,
-                followers_percentage: 0,
-                non_followers_percentage: 0
-            },
-            impressions: {
-                total_impressions: 0,
-                from_home: 0,
-                from_profile: 0,
-                from_hashtags: 0,
-                from_other: 0
-            },
-            engagement: {
-                total_engaged_accounts: 0,
-                followers_percentage: 0,
-                non_followers_percentage: 0,
-                post_interactions: {
-                    likes: 0,
-                    comments: 0,
-                    shares: 0,
-                    saves: 0
-                }
-            },
-            profile_activity: {
-                profile_visits: 0,
-                follows: 0
-            }
+        const regexPatterns = {
+            impressoes: /impress[õo]es?\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            visualizacoes: /visualiza[çc][õo]es?\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            alcance: /alcance\s*i?\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            // seguidores_alcancados: /seguidores\s*[:\-]?\s*(\d+[,.]?\d*)?\s*([\d,.]+)%/i,
+            // nao_seguidores_integram: /n[ãa]o\s*seguidores\s*[:\-]?\s*(\d+[,.]?\d*)?\s*([\d,.]+)%/i,
+            visualizacoes_completas: /visualiza[çc][õo]es?\s+completas?\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            taxa_retencao: /taxa\s+de\s+reten[çc][ãa]o\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            tempo_medio_visualizacao: /tempo\s+m[eé]dio\s+de\s+visualiza[çc][ãa]o\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            taxa_for_you: /taxa\s+for\s+you\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            cliques_link: /cliques?\s+no\s+link\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            clique_arroba: /cliques?\s+no\s+arroba\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            clique_hashtag: /nas\s+hashtags\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            avancar: /avan[çc]ar\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            voltar: /voltar\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            sair: /sair\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            proximo_story: /pr[óo]ximo\s+story\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            visitas_perfil: /visitas?\s+ao\s+perfil\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            comecaram_seguir: /come[çc]aram?\s+a\s+seguir\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            tempo_stories: /tempo\s+nos\s+stories\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            curtidas: /curtidas\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            salvamentos: /salvamentos\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            compartilhamentos: /compartilhamentos\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+            comentarios: /coment[áa]rios\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         };
 
-        // Divida o texto extraído em linhas
-        const lines = extractedText.split('\n');
+        let extractedData = {
+            impressoes: null,
+            visualizacoes: null,
+            alcance: null,
+            seguidores_alcancados: null,
+            nao_seguidores_integram: null,
+            visualizacoes_completas: null,
+            taxa_retencao: null,
+            tempo_medio_visualizacao: null,
+            taxa_for_you: null,
+            cliques_link: null,
+            clique_arroba: null,
+            clique_hashtag: null,
+            avancar: null,
+            voltar: null,
+            sair: null,
+            proximo_story: null,
+            visitas_perfil: null,
+            comecaram_seguir: null,
+            tempo_stories: null,
+            curtidas: null,
+            salvamentos: null,
+            compartilhamentos: null,
+            comentarios: null,
+        };
 
-        lines.forEach((line, index) => {
-            const cleanedLine = line.trim();
+        // Itera sobre as linhas e associa as palavras-chave aos campos do extractedData
+        for (const [key, regex] of Object.entries(regexPatterns)) {
+            const match = text.match(regex);
+            if (match) {
+                if (key === 'seguidores_alcancados' || key === 'nao_seguidores_integram') {
+                    const totalAlcanceMatch = text.match(regexPatterns.alcance);
+                    if (totalAlcanceMatch) {
+                        const totalAlcance = parseFloat(totalAlcanceMatch[1].replace(',', '.'));
+                        const porcentagem = parseFloat(match[2].replace(',', '.'));
+                        extractedData[key] = Math.round((porcentagem / 100) * totalAlcance); // Calcula o valor real
+                    }
+                } else {
+                    extractedData[key] = parseInt(match[1].replace(/[,.]/g, ''), 10); // remove ',' e '.' para números
+                }
+            }
+        }
 
-            // Extrair data
-            if (cleanedLine.includes('agosto')) {
-                jsonResult.date = cleanedLine;
-            }
+        const alcanceMatch = text.match(/alcance\s*i?\s*[:\-]?\s*(\d+[,.]?\d*)[\s\S]*?contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+        if (alcanceMatch) {
+            const porcentagens = text.match(/(\d+[,.]?\d*)%/g);
 
-            // Extrair métricas
-            if (cleanedLine.includes('Curtidas')) {
-                jsonResult.metrics.likes = parseInt(lines[index + 1]) || 0;
+            if (porcentagens && porcentagens.length >= 2) {
+                const firstPorcentage = parseFloat(porcentagens[1].replace(',', '.'));
+                const secondPorcentage = parseFloat(porcentagens[2].replace(',', '.'));
+                if ((firstPorcentage + secondPorcentage) == 100) {
+                    extractedData.seguidores_alcancados = parseFloat(porcentagens[1].replace(',', '.'));
+                    extractedData.nao_seguidores_integram = parseFloat(porcentagens[2].replace(',', '.'));
+                }
             }
-            if (cleanedLine.includes('Comentários')) {
-                jsonResult.metrics.comments = parseInt(lines[index + 1]) || 0;
-            }
-            if (cleanedLine.includes('Compartilhamentos')) {
-                jsonResult.metrics.shares = parseInt(lines[index + 1]) || 0;
-            }
-            if (cleanedLine.includes('Salvamentos')) {
-                jsonResult.metrics.saves = parseInt(lines[index + 1]) || 0;
-            }
+        }
 
-            // Extrair contas alcançadas
-            if (cleanedLine.includes('Contas alcangadas')) {
-                jsonResult.overview.accounts_reached = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair contas com engajamento
-            if (cleanedLine.includes('Contas com engajamento')) {
-                jsonResult.overview.accounts_engaged = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair visitas ao perfil
-            if (cleanedLine.includes('Visitas ao perfil')) {
-                jsonResult.profile_activity.profile_visits = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair total de alcance
-            if (cleanedLine.includes('Alcance')) {
-                jsonResult.reach.total_reach = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair porcentagens de seguidores e não seguidores
-            if (cleanedLine.includes('Seguidores')) {
-                jsonResult.reach.followers_percentage = parseFloat(cleanedLine.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
-            }
-            if (cleanedLine.includes('Não seguidores')) {
-                jsonResult.reach.non_followers_percentage = parseFloat(cleanedLine.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
-            }
-
-            // Extrair impressões
-            if (cleanedLine.includes('Impressões')) {
-                jsonResult.impressions.total_impressions = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair impressões de diferentes fontes
-            if (cleanedLine.includes('Na página inicial')) {
-                jsonResult.impressions.from_home = parseInt(lines[index + 1]) || 0;
-            }
-            if (cleanedLine.includes('No perfil')) {
-                jsonResult.impressions.from_profile = parseInt(lines[index + 1]) || 0;
-            }
-            if (cleanedLine.includes('Nas hashtags')) {
-                jsonResult.impressions.from_hashtags = parseInt(lines[index + 1]) || 0;
-            }
-            if (cleanedLine.includes('De outra pessoa')) {
-                jsonResult.impressions.from_other = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair contas com engajamento
-            if (cleanedLine.includes('Engajamento')) {
-                jsonResult.engagement.total_engaged_accounts = parseInt(lines[index + 1]) || 0;
-            }
-
-            // Extrair porcentagens de seguidores e não seguidores no engajamento
-            if (cleanedLine.includes('Seguidores') && jsonResult.engagement.total_engaged_accounts > 0) {
-                jsonResult.engagement.followers_percentage = parseFloat(cleanedLine.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
-            }
-            if (cleanedLine.includes('Não seguidores') && jsonResult.engagement.total_engaged_accounts > 0) {
-                jsonResult.engagement.non_followers_percentage = parseFloat(cleanedLine.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
-            }
-        });
-
-        return jsonResult;
+        return extractedData;
     } catch (error) {
         console.log('Erro ao formatar o texto extraído:', error);
         return false;

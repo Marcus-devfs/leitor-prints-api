@@ -12,9 +12,9 @@ const fileSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  analyticsId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Analytics',
+    ref: 'User',
     required: false
 }
 });

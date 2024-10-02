@@ -3,6 +3,7 @@ const { TextractClient, AnalyzeDocumentCommand, DetectDocumentTextCommand } = re
 const Analytics = require('../models/Analytics')
 const File = require('../models/Files')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
+const FileTextData = require('../models/FileTextData');
 
 const textract = new TextractClient({ region: 'us-east-1' });
 
@@ -10,7 +11,7 @@ const textract = new TextractClient({ region: 'us-east-1' });
 exports.upload = async (req, res) => {
    try {
       const { originalName: name, size, key, location: url = '', } = req.file
-      const { analyticsId = null } = req.query
+      const { userId = null } = req.query
 
 
       // Função para processar o arquivo no Textract
@@ -37,39 +38,42 @@ exports.upload = async (req, res) => {
       const textractResult = await analyzeWithTextract(bucketName, fileName);
 
       // Extrair o texto detectado
+
+      const textractResultBlocks = textractResult.Blocks;
       let extractedText = '';
-      textractResult.Blocks.forEach(block => {
+      textractResultBlocks.forEach(block => {
          if (block.BlockType === 'LINE') {
             extractedText += block.Text + '\n';
          }
       });
 
       // Usar a função de formatação no texto extraído
-      // const analyticsDataTranscription = await formattedTextFromImage(extractedText);
+      const analyticsDataTranscription = await formattedTextFromImage(extractedText);
 
-      console.log('Texto extraído pelo Textract:', extractedText);
+      console.log('Texto extraído:', extractedText);
+      console.log('Objeto formatado:', analyticsDataTranscription);
 
+      const file = await File.create({
+         name,
+         size,
+         url,
+         key,
+         userId
+      })
 
-      // const file = await File.create({
-      //    name,
-      //    size,
-      //    url,
-      //    key,
-      //    analyticsId,
-      //    transcription: text
-      // })
+      const updateFiles = []
 
-      // const updatedData = { $push: { files: file._id } };
-
-      // if (file?._id) {
-      //    if (analyticsId) {
-      //       const updateFile = await Analytics.findByIdAndUpdate(analyticsId, updatedData, { new: true })
-      //       return res.status(201).json({ file, updateFile: updateFile?._id })
-      //    }
-      //    return res.status(201).json({ file, success: true })
-      // }
-      // res.status(500).json({ success: false })
-      return res.status(201).json({ extractedText, success: true })
+      if (file?._id) {
+         updateFiles.push(file._id)
+         await FileTextData.create({
+            ...analyticsDataTranscription,
+            userId,
+            files: updateFiles
+         })
+         return res.status(201).json({ file, success: true })
+      }
+      res.status(500).json({ success: false })
+      return res.status(201).json({ success: true })
 
    } catch (error) {
       console.log(error)
