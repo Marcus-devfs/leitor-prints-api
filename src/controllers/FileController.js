@@ -11,7 +11,15 @@ const textract = new TextractClient({ region: 'us-east-1' });
 exports.upload = async (req, res) => {
    try {
       const { originalName: name, size, key, location: url = '', } = req.file
-      const { userId = null } = req.query
+      const {
+         userId = null,
+         influencer = null,
+         campaign = null,
+         followersNumber = null,
+         plataform = null,
+         format = null,
+         type = null
+      } = req.query
 
 
       // Função para processar o arquivo no Textract
@@ -50,15 +58,12 @@ exports.upload = async (req, res) => {
       // Usar a função de formatação no texto extraído
       const analyticsDataTranscription = await formattedTextFromImage(extractedText);
 
-      console.log('Texto extraído:', extractedText);
-      console.log('Objeto formatado:', analyticsDataTranscription);
-
       const file = await File.create({
          name,
          size,
          url,
          key,
-         userId
+         userId,
       })
 
       const updateFiles = []
@@ -68,13 +73,18 @@ exports.upload = async (req, res) => {
          await FileTextData.create({
             ...analyticsDataTranscription,
             userId,
+            influencer,
+            campaign,
+            followersNumber,
+            plataform,
+            format,
+            type,
             files: updateFiles
          })
          return res.status(201).json({ file, success: true })
       }
-      res.status(500).json({ success: false })
-      return res.status(201).json({ success: true })
 
+      res.status(500).json({ success: false })
    } catch (error) {
       console.log(error)
       res.status(500).json(error)

@@ -5,6 +5,30 @@ const { Schema } = mongoose;
 
 const fileTextDataSchema = new Schema({
     keyFile: String,
+    influencer: {
+        type: String,
+        default: null
+    },
+    plataform: {
+        type: String,
+        default: null
+    },
+    format: {
+        type: String,
+        default: null
+    },
+    campaign: {
+        type: String,
+        default: null
+    },
+    type: {
+        type: String,
+        default: null
+    },
+    followersNumber: {
+        type: Number,
+        default: null
+    },
     impressoes: {
         type: Number,
         default: null
