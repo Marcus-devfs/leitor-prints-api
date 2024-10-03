@@ -7,7 +7,6 @@ const fileSchema = new Schema({
   key: String,
   alt: String,
   url: String,
-  transcription: String,
   createdAt: {
     type: Date,
     default: Date.now

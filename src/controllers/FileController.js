@@ -1,7 +1,7 @@
 const { S3Client } = require('@aws-sdk/client-s3');
 const { TextractClient, AnalyzeDocumentCommand, DetectDocumentTextCommand } = require('@aws-sdk/client-textract');
 const Analytics = require('../models/Analytics')
-const File = require('../models/Files')
+const File = require('../models/File')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
 const FileTextData = require('../models/FileTextData');
 
@@ -10,7 +10,7 @@ const textract = new TextractClient({ region: 'us-east-1' });
 
 exports.upload = async (req, res) => {
    try {
-      const { originalName: name, size, key, location: url = '', } = req.file
+      const { originalname: name, size, key, location: url = '', } = req.file
       const {
          userId = null,
          influencer = null,

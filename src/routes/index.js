@@ -6,6 +6,7 @@ const multer = require('multer')
 const multerConfig = require('../config/multer')
 const CustomerController = require('../controllers/CustomerController')
 const AnalyticsController = require('../controllers/AnalyticsController')
+const TextDataFilesController = require('../controllers/TextDataFilesController')
 
 //User Routes
 routes.get('/', async (req, res) => {
@@ -37,6 +38,12 @@ routes.get('/analytics/:id', AnalyticsController.readById)
 routes.delete('/analytics/delete/:id', AnalyticsController.delete)
 routes.patch('/analytics/update/:id', AnalyticsController.update)
 
+
+//TextDataFiles
+routes.get('/filesData/list', TextDataFilesController.list)
+routes.get('/filesData/:id', TextDataFilesController.readById)
+routes.delete('/filesData/delete/:id', TextDataFilesController.delete)
+routes.patch('/filesData/update/:id', TextDataFilesController.update)
 
 
 // //File Routes
