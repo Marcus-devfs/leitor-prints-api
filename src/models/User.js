@@ -21,7 +21,7 @@ const userSchema = new Schema({
    permissions: {
       type: [String],
       enum: ['client', 'admin'],
-      default: ['client'],
+      default: 'client',
       required: false
    },
    password: {
