@@ -18,6 +18,12 @@ const userSchema = new Schema({
       lowercase: true,
       unique: false
    },
+   permissions: {
+      type: [String],
+      enum: ['client', 'admin'],
+      default: ['client'],
+      required: false
+   },
    password: {
       type: String,
       select: false,

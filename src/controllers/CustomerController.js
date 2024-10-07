@@ -14,8 +14,6 @@ class CustomerController {
     listFiltered = async (req, res) => {
         try {
             const { name = '' } = req.query
-            console.log(name)
-
             const removeAccents = (str) => {
                 return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
             }

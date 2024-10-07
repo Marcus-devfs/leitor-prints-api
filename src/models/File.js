@@ -7,14 +7,13 @@ const fileSchema = new Schema({
   key: String,
   alt: String,
   url: String,
-  transcription: String,
   createdAt: {
     type: Date,
     default: Date.now
   },
-  analyticsId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Analytics',
+    ref: 'User',
     required: false
 }
 });
