@@ -1,5 +1,4 @@
-const { S3Client } = require('@aws-sdk/client-s3');
-const { TextractClient, AnalyzeDocumentCommand, DetectDocumentTextCommand } = require('@aws-sdk/client-textract');
+const { TextractClient, DetectDocumentTextCommand } = require('@aws-sdk/client-textract');
 const Analytics = require('../models/Analytics')
 const File = require('../models/File')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
@@ -7,10 +6,9 @@ const FileTextData = require('../models/FileTextData');
 
 const textract = new TextractClient({ region: 'us-east-1' });
 
-
 exports.upload = async (req, res) => {
    try {
-      const { originalname: name, size, key, location: url = '', } = req.file
+      const { originalname: name, size, key, location: url = '' } = req.file
       const {
          userId = null,
          influencer = null,
@@ -18,7 +16,8 @@ exports.upload = async (req, res) => {
          followersNumber = null,
          plataform = null,
          format = null,
-         type = null
+         type = null,
+         groupKey = null
       } = req.query
 
 
@@ -56,7 +55,7 @@ exports.upload = async (req, res) => {
       });
 
       // Usar a função de formatação no texto extraído
-      const analyticsDataTranscription = await formattedTextFromImage(extractedText);
+      const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform, format);
 
       const file = await File.create({
          name,
@@ -68,7 +67,44 @@ exports.upload = async (req, res) => {
 
       const updateFiles = []
 
-      if (file?._id) {
+      if (!file?._id) return res.status(200).json({ msg: 'Não foi possível fazer upload do arquivo.', success: false })
+
+      if (groupKey) {
+
+         const fileTextData = await FileTextData.findOne({ groupKey })
+
+         if (fileTextData) {
+            let updatedFields = {};
+
+            // Percorre os dados da transcrição e soma os valores
+            for (const fileKey in analyticsDataTranscription) {
+               if (analyticsDataTranscription[fileKey]) {
+                  updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
+               }
+            }
+
+            // Atualiza o objeto usando $set e $push separadamente
+            await FileTextData.findByIdAndUpdate(fileTextData._id, { $set: updatedFields }, { new: true });
+            await FileTextData.findByIdAndUpdate(fileTextData._id, { $push: { files: file?._id } });
+         } else {
+            updateFiles.push(file._id)
+            await FileTextData.create({
+               ...analyticsDataTranscription,
+               userId,
+               influencer,
+               campaign,
+               followersNumber,
+               plataform,
+               format,
+               type,
+               groupKey,
+               files: updateFiles
+            })
+         }
+
+         return res.status(201).json({ file, success: true });
+
+      } else {
          updateFiles.push(file._id)
          await FileTextData.create({
             ...analyticsDataTranscription,
@@ -79,15 +115,15 @@ exports.upload = async (req, res) => {
             plataform,
             format,
             type,
+            groupKey,
             files: updateFiles
          })
          return res.status(201).json({ file, success: true })
       }
 
-      res.status(500).json({ success: false })
    } catch (error) {
       console.log(error)
-      res.status(500).json(error)
+      res.status(500).json({ error, success: false })
    }
 }
 
