@@ -47,8 +47,10 @@ routes.patch('/filesData/update/:id', TextDataFilesController.update)
 
 
 // //File Routes
-routes.get('/filesweb', FileController.getAllFilesWeb)
 routes.post('/file/upload', multer(multerConfig).single('file'), FileController.upload)
+routes.post('/file/upload-and-process-text', multer(multerConfig).single('file'), FileController.uploadAndProcessText)
 routes.delete('/upload/:fileId', FileController.delete)
+
+
 
 module.exports = routes 

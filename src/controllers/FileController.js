@@ -3,6 +3,8 @@ const Analytics = require('../models/Analytics')
 const File = require('../models/File')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
 const FileTextData = require('../models/FileTextData');
+const { sendPlanilha } = require('../ultilis/function/sendEmailPlanilha');
+const { deleteObjectFromS3 } = require('../config/s3');
 
 const textract = new TextractClient({ region: 'us-east-1' });
 
@@ -57,70 +59,123 @@ exports.upload = async (req, res) => {
       // Usar a função de formatação no texto extraído
       const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform, format);
 
-      const file = await File.create({
-         name,
-         size,
-         url,
-         key,
-         userId,
-      })
+      console.log('analyticsDataTranscription: ', analyticsDataTranscription)
+
+      // const file = await File.create({
+      //    name,
+      //    size,
+      //    url,
+      //    key,
+      //    userId,
+      // })
 
       const updateFiles = []
 
-      if (!file?._id) return res.status(200).json({ msg: 'Não foi possível fazer upload do arquivo.', success: false })
+      await sendPlanilha()
+      return res.status(201).json({ success: true })
 
-      if (groupKey) {
+      // if (!file?._id) return res.status(200).json({ msg: 'Não foi possível fazer upload do arquivo.', success: false })
 
-         const fileTextData = await FileTextData.findOne({ groupKey })
+      // if (groupKey) {
 
-         if (fileTextData) {
-            let updatedFields = {};
+      //    const fileTextData = await FileTextData.findOne({ groupKey })
 
-            // Percorre os dados da transcrição e soma os valores
-            for (const fileKey in analyticsDataTranscription) {
-               if (analyticsDataTranscription[fileKey]) {
-                  updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
-               }
-            }
+      //    if (fileTextData) {
+      //       let updatedFields = {};
 
-            // Atualiza o objeto usando $set e $push separadamente
-            await FileTextData.findByIdAndUpdate(fileTextData._id, { $set: updatedFields }, { new: true });
-            await FileTextData.findByIdAndUpdate(fileTextData._id, { $push: { files: file?._id } });
-         } else {
-            updateFiles.push(file._id)
-            await FileTextData.create({
-               ...analyticsDataTranscription,
-               userId,
-               influencer,
-               campaign,
-               followersNumber,
-               plataform,
-               format,
-               type,
-               groupKey,
-               files: updateFiles
-            })
+      //       // Percorre os dados da transcrição e soma os valores
+      //       for (const fileKey in analyticsDataTranscription) {
+      //          if (analyticsDataTranscription[fileKey]) {
+      //             updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
+      //          }
+      //       }
+
+      //       // Atualiza o objeto usando $set e $push separadamente
+      //       await FileTextData.findByIdAndUpdate(fileTextData._id, { $set: updatedFields }, { new: true });
+      //       await FileTextData.findByIdAndUpdate(fileTextData._id, { $push: { files: file?._id } });
+      //    } else {
+      //       updateFiles.push(file._id)
+      //       await FileTextData.create({
+      //          ...analyticsDataTranscription,
+      //          userId,
+      //          influencer,
+      //          campaign,
+      //          followersNumber,
+      //          plataform,
+      //          format,
+      //          type,
+      //          groupKey,
+      //          files: updateFiles
+      //       })
+      //    }
+
+      //    return res.status(201).json({ file, success: true });
+
+      // } else {
+      //    updateFiles.push(file._id)
+      //    await FileTextData.create({
+      //       ...analyticsDataTranscription,
+      //       userId,
+      //       influencer,
+      //       campaign,
+      //       followersNumber,
+      //       plataform,
+      //       format,
+      //       type,
+      //       groupKey,
+      //       files: updateFiles
+      //    })
+      //    return res.status(201).json({ file, success: true })
+      // }
+
+   } catch (error) {
+      console.log(error)
+      res.status(500).json({ error, success: false })
+   }
+}
+
+
+exports.uploadAndProcessText = async (req, res) => {
+   try {
+      const { key } = req.file
+
+
+      // Função para processar o arquivo no Textract
+      const analyzeWithTextract = async (bucket, fileName) => {
+         const params = {
+            Document: {
+               S3Object: {
+                  Bucket: bucket,
+                  Name: fileName,
+               },
+            },
+         };
+
+         // Usar Textract para detectar o texto
+         const command = new DetectDocumentTextCommand(params);
+         const result = await textract.send(command);
+         return result;
+      };
+
+      const bucketName = process.env.BUCKET_NAME;
+      const fileName = key;
+
+      // Chamar o AWS Textract para analisar o documento
+      const textractResult = await analyzeWithTextract(bucketName, fileName);
+
+      // Extrair o texto detectado
+
+      const textractResultBlocks = textractResult.Blocks;
+      let extractedFormattedText = '';
+      textractResultBlocks.forEach(block => {
+         if (block.BlockType === 'LINE') {
+            extractedFormattedText += block.Text + '\n';
          }
+      });
 
-         return res.status(201).json({ file, success: true });
+      await deleteObjectFromS3(key)
 
-      } else {
-         updateFiles.push(file._id)
-         await FileTextData.create({
-            ...analyticsDataTranscription,
-            userId,
-            influencer,
-            campaign,
-            followersNumber,
-            plataform,
-            format,
-            type,
-            groupKey,
-            files: updateFiles
-         })
-         return res.status(201).json({ file, success: true })
-      }
-
+      return res.status(201).json({ extractedFormattedText, success: true })
    } catch (error) {
       console.log(error)
       res.status(500).json({ error, success: false })
