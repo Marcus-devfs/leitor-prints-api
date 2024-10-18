@@ -44,6 +44,7 @@ routes.get('/filesData/list', TextDataFilesController.list)
 routes.get('/filesData/:id', TextDataFilesController.readById)
 routes.delete('/filesData/delete/:id', TextDataFilesController.delete)
 routes.patch('/filesData/update/:id', TextDataFilesController.update)
+routes.post('/filesData/send-planilha-email', TextDataFilesController.sendTextDataInPlanilha)
 
 
 // //File Routes

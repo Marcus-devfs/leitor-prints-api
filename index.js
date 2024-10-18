@@ -12,7 +12,12 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 app.use(routes)
 
-mongoose.connect(process.env.MONGODB_URL).then(res => {
+mongoose.connect(process.env.MONGODB_URL, {
+   useNewUrlParser: true,
+   useUnifiedTopology: true,
+   socketTimeoutMS: 45000, // 45 segundos
+   serverSelectionTimeoutMS: 45000, // 45 segundos
+}).then(res => {
    console.log('Connected to DB')
 }).catch(err => {
    console.log('ERRO:', err.errors)

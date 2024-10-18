@@ -22,9 +22,9 @@ async function planilhaEmailHTML() {
                         <a href="https://dottie-plataforma-develop.vercel.app" target="_blank">Painel Dottie</a>
                     </div>
 
-                    <div>
-                    <img src="https://mf-planejados.s3.amazonaws.com/logo.png" alt="Logo da Empresa">
-                </div>
+                //     <div>
+                //     <img src="https://mf-planejados.s3.amazonaws.com/logo.png" alt="Logo da Empresa">
+                // </div>
                 </div>
             
             </body>

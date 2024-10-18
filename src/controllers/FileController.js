@@ -59,74 +59,71 @@ exports.upload = async (req, res) => {
       // Usar a função de formatação no texto extraído
       const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform, format);
 
-      console.log('analyticsDataTranscription: ', analyticsDataTranscription)
-
-      // const file = await File.create({
-      //    name,
-      //    size,
-      //    url,
-      //    key,
-      //    userId,
-      // })
+      const file = await File.create({
+         name,
+         size,
+         url,
+         key,
+         userId,
+      })
 
       const updateFiles = []
 
-      await sendPlanilha()
-      return res.status(201).json({ success: true })
+      if (!file?._id) return res.status(200).json({ msg: 'Não foi possível fazer upload do arquivo.', success: false })
 
-      // if (!file?._id) return res.status(200).json({ msg: 'Não foi possível fazer upload do arquivo.', success: false })
+      if (groupKey) {
 
-      // if (groupKey) {
+         const fileTextData = await FileTextData.findOne({ groupKey })
 
-      //    const fileTextData = await FileTextData.findOne({ groupKey })
+         if (fileTextData) {
+            let updatedFields = {};
 
-      //    if (fileTextData) {
-      //       let updatedFields = {};
+            // Percorre os dados da transcrição e soma os valores
+            for (const fileKey in analyticsDataTranscription) {
+               if (analyticsDataTranscription[fileKey]) {
+                  updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
+               }
+            }
 
-      //       // Percorre os dados da transcrição e soma os valores
-      //       for (const fileKey in analyticsDataTranscription) {
-      //          if (analyticsDataTranscription[fileKey]) {
-      //             updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
-      //          }
-      //       }
+            // Atualiza o objeto usando $set e $push separadamente
+            await FileTextData.findByIdAndUpdate(fileTextData._id, { $set: updatedFields }, { new: true });
+            await FileTextData.findByIdAndUpdate(fileTextData._id, { $push: { files: file?._id } });
 
-      //       // Atualiza o objeto usando $set e $push separadamente
-      //       await FileTextData.findByIdAndUpdate(fileTextData._id, { $set: updatedFields }, { new: true });
-      //       await FileTextData.findByIdAndUpdate(fileTextData._id, { $push: { files: file?._id } });
-      //    } else {
-      //       updateFiles.push(file._id)
-      //       await FileTextData.create({
-      //          ...analyticsDataTranscription,
-      //          userId,
-      //          influencer,
-      //          campaign,
-      //          followersNumber,
-      //          plataform,
-      //          format,
-      //          type,
-      //          groupKey,
-      //          files: updateFiles
-      //       })
-      //    }
+            return res.status(201).json({ textDataId: fileTextData._id, success: true });
+         } else {
+            updateFiles.push(file._id)
+            const fileTextData = await FileTextData.create({
+               ...analyticsDataTranscription,
+               userId,
+               influencer,
+               campaign,
+               followersNumber,
+               plataform,
+               format,
+               type,
+               groupKey,
+               files: updateFiles
+            })
 
-      //    return res.status(201).json({ file, success: true });
+            return res.status(201).json({ textDataId: fileTextData._id, success: true });
+         }
 
-      // } else {
-      //    updateFiles.push(file._id)
-      //    await FileTextData.create({
-      //       ...analyticsDataTranscription,
-      //       userId,
-      //       influencer,
-      //       campaign,
-      //       followersNumber,
-      //       plataform,
-      //       format,
-      //       type,
-      //       groupKey,
-      //       files: updateFiles
-      //    })
-      //    return res.status(201).json({ file, success: true })
-      // }
+      } else {
+         updateFiles.push(file._id)
+         const fileTextData = await FileTextData.create({
+            ...analyticsDataTranscription,
+            userId,
+            influencer,
+            campaign,
+            followersNumber,
+            plataform,
+            format,
+            type,
+            groupKey,
+            files: updateFiles
+         })
+         return res.status(201).json({ textDataId: fileTextData._id, success: true });
+      }
 
    } catch (error) {
       console.log(error)
