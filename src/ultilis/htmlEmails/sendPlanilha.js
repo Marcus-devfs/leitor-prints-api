@@ -13,18 +13,19 @@ async function planilhaEmailHTML() {
             
                 <div>
                     <div>
-                        <p>Olá Fulano Silva</p>
-
-                        <p>As imagens foram processadas!</p>
-                        <p>A planilha está em anexo.</p>
+                        <p>Olá!</p>
+                        <p>Planilha está em anexo com os dados processados.</p>
             
                         <p>Acesse o painel Dottie para analisar os dados processados:</p>
                         <a href="https://dottie-plataforma-develop.vercel.app" target="_blank">Painel Dottie</a>
                     </div>
 
-                //     <div>
-                //     <img src="https://mf-planejados.s3.amazonaws.com/logo.png" alt="Logo da Empresa">
-                // </div>
+                <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 20px;">
+                  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+                     <img src="https://mf-planejados.s3.amazonaws.com/avatar-dottie.png" alt="Logo da Empresa">
+                     <img src="https://mf-planejados.s3.amazonaws.com/logo-dottie.png" alt="Nome da Empresa">
+                  </div>
+                </div>
                 </div>
             
             </body>

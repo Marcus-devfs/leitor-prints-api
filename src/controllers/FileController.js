@@ -3,7 +3,6 @@ const Analytics = require('../models/Analytics')
 const File = require('../models/File')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
 const FileTextData = require('../models/FileTextData');
-const { sendPlanilha } = require('../ultilis/function/sendEmailPlanilha');
 const { deleteObjectFromS3 } = require('../config/s3');
 
 const textract = new TextractClient({ region: 'us-east-1' });
@@ -51,13 +50,14 @@ exports.upload = async (req, res) => {
       const textractResultBlocks = textractResult.Blocks;
       let extractedText = '';
       textractResultBlocks.forEach(block => {
-         if (block.BlockType === 'LINE') {
+         if (block.BlockType === 'LINE' && block.Text) {
             extractedText += block.Text + '\n';
          }
       });
 
+
       // Usar a função de formatação no texto extraído
-      const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform, format);
+      const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform);
 
       const file = await File.create({
          name,
