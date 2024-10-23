@@ -15,6 +15,7 @@ exports.upload = async (req, res) => {
          influencer = null,
          campaign = null,
          followersNumber = null,
+         marca_cliente = null,
          plataform = null,
          format = null,
          type = null,
@@ -81,7 +82,21 @@ exports.upload = async (req, res) => {
             // Percorre os dados da transcrição e soma os valores
             for (const fileKey in analyticsDataTranscription) {
                if (analyticsDataTranscription[fileKey]) {
-                  updatedFields[fileKey] = (fileTextData[fileKey] || 0) + analyticsDataTranscription[fileKey];
+                  const dbValue = fileTextData[fileKey];
+                  const newValue = analyticsDataTranscription[fileKey];
+      
+                  // Se o valor da transcrição for numérico, soma ao valor existente (ou usa 0 se não houver valor)
+                  if (typeof newValue === 'number') {
+                     updatedFields[fileKey] = (typeof dbValue === 'number' ? dbValue : 0) + newValue;
+      
+                  // Se o valor for uma string e não houver valor existente no banco ou o valor existente for null, atualiza
+                  } else if (typeof newValue === 'string' && (!dbValue || dbValue === null)) {
+                     updatedFields[fileKey] = newValue;
+      
+                  // Se for string e já houver valor, mantém o valor existente no banco
+                  } else if (typeof newValue === 'string' && typeof dbValue === 'string') {
+                     updatedFields[fileKey] = dbValue; // Mantém o valor existente no banco
+                  }
                }
             }
 
@@ -102,6 +117,7 @@ exports.upload = async (req, res) => {
                format,
                type,
                groupKey,
+               marca_cliente,
                files: updateFiles
             })
 
@@ -120,6 +136,7 @@ exports.upload = async (req, res) => {
             format,
             type,
             groupKey,
+            marca_cliente,
             files: updateFiles
          })
          return res.status(201).json({ textDataId: fileTextData._id, success: true });

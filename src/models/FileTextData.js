@@ -5,6 +5,10 @@ const { Schema } = mongoose;
 
 const fileTextDataSchema = new Schema({
     groupKey: String,
+    marca_cliente: {
+        type: String,
+        default: null
+    },
     influencer: {
         type: String,
         default: null
@@ -54,15 +58,15 @@ const fileTextDataSchema = new Schema({
         default: null
     },
     taxa_retencao: {
-        type: Number,
+        type: String,
         default: null
     },
     tempo_medio_visualizacao: {
-        type: Number,
+        type: String,
         default: null
     },
     taxa_for_you: {
-        type: Number,
+        type: String,
         default: null
     },
     cliques_link: {
@@ -102,7 +106,7 @@ const fileTextDataSchema = new Schema({
         default: null
     },
     tempo_stories: {
-        type: Number,
+        type: String,
         default: null
     },
     curtidas: {

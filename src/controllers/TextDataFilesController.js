@@ -28,7 +28,7 @@ class TextDataFilesController {
 
                 // Mapeia os dados de acordo com as colunas
                 textFileData.push({
-                    Marca: '', // ou outro campo adequado
+                    Marca: textData.marca_cliente || '', // ou outro campo adequado
                     Categoria: textData.type || '', // ou outro campo adequado
                     Acao: textData.campaign || '',
                     Influenciador: textData.influencer || '',
