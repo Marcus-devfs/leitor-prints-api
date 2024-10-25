@@ -58,7 +58,7 @@ exports.upload = async (req, res) => {
 
 
       // Usar a função de formatação no texto extraído
-      const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform);
+      const analyticsDataTranscription = await formattedTextFromImage(extractedText, plataform, format);
 
       const file = await File.create({
          name,
@@ -84,15 +84,15 @@ exports.upload = async (req, res) => {
                if (analyticsDataTranscription[fileKey]) {
                   const dbValue = fileTextData[fileKey];
                   const newValue = analyticsDataTranscription[fileKey];
-      
+
                   // Se o valor da transcrição for numérico, soma ao valor existente (ou usa 0 se não houver valor)
                   if (typeof newValue === 'number') {
                      updatedFields[fileKey] = (typeof dbValue === 'number' ? dbValue : 0) + newValue;
-      
+
                   // Se o valor for uma string e não houver valor existente no banco ou o valor existente for null, atualiza
                   } else if (typeof newValue === 'string' && (!dbValue || dbValue === null)) {
                      updatedFields[fileKey] = newValue;
-      
+
                   // Se for string e já houver valor, mantém o valor existente no banco
                   } else if (typeof newValue === 'string' && typeof dbValue === 'string') {
                      updatedFields[fileKey] = dbValue; // Mantém o valor existente no banco

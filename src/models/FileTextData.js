@@ -30,31 +30,31 @@ const fileTextDataSchema = new Schema({
         default: null
     },
     followersNumber: {
-        type: Number,
+        type: String,
         default: null
     },
     impressoes: {
-        type: Number,
+        type: String,
         default: null
     },
     visualizacoes: {
-        type: Number,
+        type: String,
         default: null
     },
     alcance: {
-        type: Number,
+        type: String,
         default: null
     },
     seguidores_alcancados: {
-        type: Number,
+        type: String,
         default: null
     },
     nao_seguidores_integram: {
-        type: Number,
+        type: String,
         default: null
     },
     visualizacoes_completas: {
-        type: Number,
+        type: String,
         default: null
     },
     taxa_retencao: {
@@ -70,39 +70,39 @@ const fileTextDataSchema = new Schema({
         default: null
     },
     cliques_link: {
-        type: Number,
+        type: String,
         default: null
     },
     clique_arroba: {
-        type: Number,
+        type: String,
         default: null
     },
     clique_hashtag: {
-        type: Number,
+        type: String,
         default: null
     },
     avancar: {
-        type: Number,
+        type: String,
         default: null
     },
     voltar: {
-        type: Number,
+        type: String,
         default: null
     },
     sair: {
-        type: Number,
+        type: String,
         default: null
     },
     proximo_story: {
-        type: Number,
+        type: String,
         default: null
     },
     visitas_perfil: {
-        type: Number,
+        type: String,
         default: null
     },
     comecaram_seguir: {
-        type: Number,
+        type: String,
         default: null
     },
     tempo_stories: {
@@ -110,19 +110,47 @@ const fileTextDataSchema = new Schema({
         default: null
     },
     curtidas: {
-        type: Number,
+        type: String,
         default: null
     },
     salvamentos: {
-        type: Number,
+        type: String,
         default: null
     },
     compartilhamentos: {
-        type: Number,
+        type: String,
         default: null
     },
     comentarios: {
-        type: Number,
+        type: String,
+        default: null
+    },
+    recursos_de_navegacao: {
+        type: String,
+        default: null
+    },
+    pesquisa_do_youtube: {
+        type: String,
+        default: null
+    },
+    videos_sugeridos: {
+        type: String,
+        default: null
+    },
+    paginas_do_canal: {
+        type: String,
+        default: null
+    },
+    engajamento: {
+        type: String,
+        default: null
+    },
+    novos_seguidores: {
+        type: String,
+        default: null
+    },
+    detalha_expansoes: {
+        type: String,
         default: null
     },
     userId: {
