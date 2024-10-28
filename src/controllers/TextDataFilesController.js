@@ -10,9 +10,40 @@ class TextDataFilesController {
 
     list = async (req, res) => {
         try {
-            const filesData = await FileTextData.find()
-            res.status(200).json({ success: true, filesData })
+            const { page = 1, limit = 10, search = '', userId } = req.query
+
+            const pageNum = parseInt(page);
+            const limitNum = parseInt(limit);
+
+            console.log('search: ', search)
+            console.log(page)
+            console.log(limit)
+
+            let query = {}
+
+            if (search && search != '') {
+                query.influencer = { $regex: search, $options: 'i' }; // Ajuste "name" para o campo correto
+            }
+            if (userId) {
+                query.userId = userId;
+            }
+
+            // Calcula o total de documentos para paginação
+            const total = await FileTextData.countDocuments(query);
+
+
+            // Busca os dados com paginação e filtro
+            const filesData = await FileTextData.find(query)
+                .skip((pageNum - 1) * limitNum)
+                .limit(limitNum);
+
+            console.log('filesData: ', filesData)
+            console.log('filesData: ', filesData)
+
+
+            res.status(200).json({ success: true, filesData, total });
         } catch (error) {
+            console.log(error)
             res.status(500).json({ success: false })
         }
     }
