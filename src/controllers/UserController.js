@@ -3,6 +3,7 @@ const UserModel = require('../models/User')
 const bcrypt = require('bcrypt')
 const { trusted } = require('mongoose')
 const sgMail = require('@sendgrid/mail')
+const { sendFirstAccess } = require('../ultilis/function/sendFirstAccess')
 
 class UserController {
 
@@ -37,40 +38,21 @@ class UserController {
          const salt = await bcrypt.genSalt(10)
          const passwordHash = await bcrypt.hash(senha, salt)
 
+         if (userData?.permissions?.length == 0) {
+            userData.permissions = ['client']
+         }
          const newUser = await UserModel.create({
             ...userData,
             password: passwordHash,
          })
 
-         // let html = `
-         // <div style="background-color: #f1f1f1; padding: 30px; position: relative;">
-         //    <div style="max-width: 400px; background-color: #fff; padding: 30px; border-radius: 12px; position: absolute; margin: auto; left: 0; right: 0; top: 0; bottom: 0;">
-         //       <p style="font-size: 18px; text-align: center;">${newUser?.name},</p>
-         //       <p style="font-size: 18px; text-align: center;">Você já pode acessar o painel M&F Admin:</p>
-         //       <p style="font-size: 18px;">https://admin-mfplanejados.vercel.app</p>
-         //       <p style="font-size: 18px;">Usuário: ${email}</p>
-         //       <p style="font-size: 18px;">Senha: ${senha}</p>
-         //    </div>
-         // </div>`
-
-         // sgMail.setApiKey(process.env.NEXT_PUBLIC_SENDGRID_API_KEY);
-
-         // const msg = {
-         //    to: email,
-         //    from: 'edermarce1@yahoo.com.br',
-         //    subject: 'M&F - Credenciais de Acesso',
-         //    html
-         // };
-
-         // sgMail.send(msg, () => console.log({
-         //    message: `Credentials sent to ${email}`,
-         // }));
+         await sendFirstAccess({ name: newUser.name, senha, email })
 
          res.status(201).json({ newUser, success: true })
 
       } catch (error) {
-         console.log(error)
-         res.status(500).json({ error: error.response, success: false })
+         console.log(error.response)
+         res.status(500).json({ error: error.response?.data, success: false })
       }
    }
 
@@ -81,7 +63,7 @@ class UserController {
       try {
          const user = await UserModel.findOne({ email })
             .select('+password')
-            
+
          if (!user) return res.status(401).json({ msg: 'Invalid Credentials', success: false })
 
          const result = await bcrypt.compare(password, user.password)

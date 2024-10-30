@@ -5,7 +5,6 @@ class ReportsController {
     reportDashboard = async (req, res) => {
         try {
             const { userId } = req.currentUser
-            if (!userId) return res.status(200).json({ success: false })
 
             let indicadores = {
                 influencers: 0,
@@ -26,27 +25,49 @@ class ReportsController {
                         data: []
                     },
                     table_v2: {
-                        title: 'Detalhes por Influênciador',
+                        title: 'Detalhes por Influenciador',
                         data: []
                     },
                 },
                 stories: {
-                    table_v1: [],
-                    table_v2: [],
+                    table_v1: {
+                        title: 'Média por Plataforma',
+                        data: []
+                    },
+                    table_v2: {
+                        title: 'Detalhes por Influenciador',
+                        data: []
+                    },
                 },
                 video_longo: {
-                    table_v1: [],
-                    table_v2: []
+                    table_v1: {
+                        title: 'Média por Plataforma',
+                        data: []
+                    },
+                    table_v2: {
+                        title: 'Detalhes por Influenciador',
+                        data: []
+                    },
                 },
                 outras_plataformas: {
-                    table_v1: [],
-                    table_v2: []
+                    table_v1: {
+                        title: 'Twitter',
+                        data: []
+                    },
+                    table_v2: {
+                        title: '',
+                        data: []
+                    },
                 }
             }
 
+
+            if (!userId) return res.status(200).json({ success: false, indicadores, reports })
+
             const data = await FileTextData.find({ userId }).exec()
 
-            if (data.length == 0) res.status(200).json({ success: true, indicadores })
+
+            if (data.length == 0) return res.status(200).json({ success: true, indicadores, reports })
 
             //Video Curto:
             //reels, tiktok, short
@@ -95,6 +116,140 @@ class ReportsController {
 
             reports.video_curto.table_v1.data = tableVideoCurtoMediaPlataforma
             reports.video_curto.table_v2.data = tableVideoCurtoInfluencer
+
+
+            const tableStoriesInfluencer = data
+                .filter(item => {
+                    const short = ['story']
+                    return short.includes(item.format.toLowerCase())
+                })
+                .map(item => ({
+                    marca: item?.marca_cliente,
+                    acao: item?.acao,
+                    influencer: item?.influencer,
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    data: item?.createdAt,
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    impressoes: item?.impressoes,
+                    avancar: item?.avancar,
+                    engajamento: item?.engajamento,
+                    taxa_de_engajamento: '',
+                    cliques_no_link: item?.cliques_link,
+                    clique_no_arroba: item?.clique_arroba,
+                    clique_hashtag: item?.clique_hashtag
+                }))
+
+            const tableStoriesMediaPlataforma = data
+                .filter(item => {
+                    const short = ['story']
+                    return short.includes(item.format.toLowerCase())
+                })
+                .map(item => ({
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    impressoes: item?.impressoes,
+                    avancar: item?.avancar,
+                    engajamento: item?.engajamento,
+                    taxa_de_engajamento: '',
+                    cliques_no_link: item?.cliques_link,
+                    clique_no_arroba: item?.clique_arroba,
+                    clique_hashtag: item?.clique_hashtag
+                }))
+
+            reports.stories.table_v1.data = tableStoriesMediaPlataforma
+            reports.stories.table_v2.data = tableStoriesInfluencer
+
+
+            const tableVideoLongoInfluencer = data
+                .filter(item => {
+                    const plataform = ['youtube']
+                    return plataform.includes(item.plataform.toLowerCase())
+                })
+                .map(item => ({
+                    marca: item?.marca_cliente,
+                    acao: item?.acao,
+                    influencer: item?.influencer,
+                    url_publi: '',
+                    data: item?.createdAt,
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    impressoes: item?.impressoes,
+                    visualizacoes: item?.visualizacoes,
+                    taxa_de_retencao: item?.taxa_retencao,
+                    engajamento: item?.engajamento,
+                    eng_youtube: '',
+                    curtidas: item?.curtidas,
+                    comentarios: item?.comentarios,
+                }))
+
+            const tableVideoLongoPlataforma = data
+                .filter(item => {
+                    const plataform = ['youtube']
+                    return plataform.includes(item.plataform.toLowerCase())
+                })
+                .map(item => ({
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    impressoes: item?.impressoes,
+                    visualizacoes: item?.visualizacoes,
+                    taxa_de_retencao: item?.taxa_retencao,
+                    engajamento: item?.engajamento,
+                    eng_youtube: '',
+                    curtidas: item?.curtidas,
+                    comentarios: item?.comentarios,
+                }))
+
+            reports.video_longo.table_v1.data = tableVideoLongoPlataforma
+            reports.video_longo.table_v2.data = tableVideoLongoInfluencer
+
+
+            const tableOutrosInfluencer = data
+                .filter(item => {
+                    const plataform = ['twitter']
+                    return plataform.includes(item.plataform.toLowerCase())
+                })
+                .map(item => ({
+                    marca: item?.marca_cliente,
+                    acao: item?.acao,
+                    influencer: item?.influencer,
+                    formato: item?.format,
+                    url_publi: '',
+                    seguidores: item?.seguidores,
+                    impressoes: item?.impressoes,
+                    engajamento: item?.engajamento,
+                    taxa_de_retencao: item?.taxa_retencao,
+                    curtidas: item?.curtidas,
+                    comentarios: item?.comentarios,
+                    retwit: item?.retwit,
+                    cliques_link: item?.cliques_link,
+                }))
+
+            const tableOutrosPlataforma = data
+                .filter(item => {
+                    const plataform = ['twitter']
+                    return plataform.includes(item.plataform.toLowerCase())
+                })
+                .map(item => ({
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    seguidores: item?.seguidores,
+                    impressoes: item?.impressoes,
+                    engajamento: item?.engajamento,
+                    taxa_de_retencao: item?.taxa_retencao,
+                    curtidas: item?.curtidas,
+                    comentarios: item?.comentarios,
+                    retwit: item?.retwit,
+                    cliques_link: item?.cliques_link,
+                }))
+
+            reports.outras_plataformas.table_v1.data = tableOutrosPlataforma
+            reports.outras_plataformas.table_v2.data = tableOutrosInfluencer
 
 
             //indicadores
