@@ -24,6 +24,11 @@ const userSchema = new Schema({
       default: 'client',
       required: false
    },
+   paying: {
+      type: Boolean,
+      default: false,
+      required: false
+   },
    password: {
       type: String,
       select: false,
