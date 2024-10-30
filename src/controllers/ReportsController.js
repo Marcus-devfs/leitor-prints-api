@@ -19,12 +19,87 @@ class ReportsController {
                 comentarios_total: 0
             }
 
+            let reports = {
+                video_curto: {
+                    table_v1: {
+                        title: 'Média por Plataforma',
+                        data: []
+                    },
+                    table_v2: {
+                        title: 'Detalhes por Influênciador',
+                        data: []
+                    },
+                },
+                stories: {
+                    table_v1: [],
+                    table_v2: [],
+                },
+                video_longo: {
+                    table_v1: [],
+                    table_v2: []
+                },
+                outras_plataformas: {
+                    table_v1: [],
+                    table_v2: []
+                }
+            }
+
             const data = await FileTextData.find({ userId }).exec()
 
             if (data.length == 0) res.status(200).json({ success: true, indicadores })
 
+            //Video Curto:
+            //reels, tiktok, short
+
+            const tableVideoCurtoInfluencer = data
+                .filter(item => {
+                    const short = ['reels', 'tiktok', 'short']
+                    return short.includes(item.format.toLowerCase())
+                })
+                .map(item => ({
+                    marca: item?.marca_cliente,
+                    acao: item?.acao,
+                    influencer: item?.influencer,
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    data: item?.createdAt,
+                    url_publi: '',
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    views: item?.visualizacoes || item?.views,
+                    engajamento: item?.engajamento,
+                    taxa_de_engajamento: '',
+                    curtidas: item?.curtidas,
+                    compartilhamentos: item?.compartilhamentos,
+                    comentarios: item?.comentarios
+                }))
+
+            const tableVideoCurtoMediaPlataforma = data
+                .filter(item => {
+                    const short = ['reels', 'tiktok', 'short']
+                    return short.includes(item.format.toLowerCase())
+                })
+                .map(item => ({
+                    plataforma: item?.plataform,
+                    formato: item?.format,
+                    seguidores: item?.seguidores,
+                    alcance_seguidores: '',
+                    views: item?.visualizacoes || item?.views,
+                    taxa_views: '',
+                    engajamento: item?.engajamento,
+                    taxa_de_engajamento: '',
+                    curtidas: item?.curtidas,
+                    compartilhamentos: item?.compartilhamentos,
+                    comentarios: item?.comentarios
+                }))
+
+            reports.video_curto.table_v1.data = tableVideoCurtoMediaPlataforma
+            reports.video_curto.table_v2.data = tableVideoCurtoInfluencer
+
+
+            //indicadores
             // Contagem influenciadores Distintos
-            const influencersSet = new Set(data.map(item => item.influencer))
+            const influencersSet = new Set(data.map(item => item.influencer.toLowerCase()))
             indicadores.influencers = influencersSet.size
 
             // Total de publicações
@@ -32,7 +107,7 @@ class ReportsController {
 
             // Seguidores Totais (maior número de seguidores por influenciador)
             const seguidoresPorInfluencer = data.reduce((acc, item) => {
-                const influencer = item.influencer;
+                const influencer = item.influencer.toLowerCase();
                 const followers = Number(item.followersNumber) || 0;
                 acc[influencer] = Math.max(acc[influencer] || 0, followers);
                 return acc;
@@ -79,7 +154,7 @@ class ReportsController {
                 return acc + (Number(item.comentarios) || 0)
             }, 0)
 
-            res.status(200).json({ success: true, indicadores })
+            res.status(200).json({ success: true, indicadores, reports })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false })

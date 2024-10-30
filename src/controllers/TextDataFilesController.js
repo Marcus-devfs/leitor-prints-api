@@ -37,10 +37,6 @@ class TextDataFilesController {
                 .skip((pageNum - 1) * limitNum)
                 .limit(limitNum);
 
-            console.log('filesData: ', filesData)
-            console.log('filesData: ', filesData)
-
-
             res.status(200).json({ success: true, filesData, total });
         } catch (error) {
             console.log(error)
