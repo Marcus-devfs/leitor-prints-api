@@ -15,10 +15,6 @@ class TextDataFilesController {
             const pageNum = parseInt(page);
             const limitNum = parseInt(limit);
 
-            console.log('search: ', search)
-            console.log(page)
-            console.log(limit)
-
             let query = {}
 
             if (search && search != '') {

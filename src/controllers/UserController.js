@@ -9,8 +9,27 @@ class UserController {
 
    list = async (req, res) => {
       try {
-         const users = await UserModel.find().exec()
-         res.status(200).json({ success: true, users })
+
+         const { page = 1, limit = 10, search = '' } = req.query
+
+         const pageNum = parseInt(page);
+         const limitNum = parseInt(limit);
+
+         let query = {}
+
+         if (search && search != '') {
+            query.name = { $regex: search, $options: 'i' }; // Ajuste "name" para o campo correto
+         }
+
+         // Calcula o total de documentos para paginação
+         const total = await UserModel.countDocuments(query);
+
+         // Busca os dados com paginação e filtro
+         const users = await UserModel.find(query)
+            .skip((pageNum - 1) * limitNum)
+            .limit(limitNum);
+
+         res.status(200).json({ success: true, users, total })
       } catch (error) {
          res.status(500).json({ success: false })
       }
