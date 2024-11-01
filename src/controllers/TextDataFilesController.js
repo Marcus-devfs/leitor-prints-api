@@ -4,6 +4,7 @@ const path = require('path');
 const XLSX = require('xlsx');
 const ColumnsPlanilha = require('../helpers/planilhaExport');
 const { sendPlanilha } = require('../ultilis/function/sendEmailPlanilha');
+const User = require('../models/User');
 
 
 class TextDataFilesController {
@@ -43,8 +44,9 @@ class TextDataFilesController {
     sendTextDataInPlanilha = async (req, res) => {
         try {
             const { textDataIds = [] } = req.body;
+            const { userId } = req.currentUser
 
-
+            const user = await User.findById(userId)
             let textFileData = [];
             await Promise.all(textDataIds.map(async (item) => {
                 const textData = await FileTextData.findById(item);
@@ -100,7 +102,7 @@ class TextDataFilesController {
 
             // Enviar o e-mail com o Excel como anexo
             if (excelBuffer) {
-                await sendPlanilha(excelBuffer);
+                await sendPlanilha(excelBuffer, user.email);
             }
 
             res.status(200).json({ success: true });
