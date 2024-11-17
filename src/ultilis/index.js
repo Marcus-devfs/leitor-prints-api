@@ -1,0 +1,19 @@
+function formattDateAndHour() {
+    const data = new Date();
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    const hora = String(data.getHours()).padStart(2, '0');
+    const minutos = String(data.getMinutes()).padStart(2, '0');
+    return `${ano}${mes}${dia}${hora}${minutos}`;
+}
+
+function formatPorcentagem(value) {
+    const formattedValue = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 2 }).format(formattedValue / 100);
+}
+
+module.exports = {
+    formattDateAndHour,
+    formatPorcentagem
+}

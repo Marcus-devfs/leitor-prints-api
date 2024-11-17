@@ -1,4 +1,5 @@
 const FileTextData = require("../models/FileTextData")
+const { formatPorcentagem } = require("../ultilis")
 
 class ReportsController {
 
@@ -71,13 +72,14 @@ class ReportsController {
 
             //Video Curto:
             //reels, tiktok, short
+            const filteredData = (data, types) => data.filter(item => {
+                const short = types
+                return short.includes(item.format.toLowerCase())
+            })
 
-            const tableVideoCurtoInfluencer = data
-                .filter(item => {
-                    const short = ['reels', 'tiktok', 'short']
-                    return short.includes(item.format.toLowerCase())
-                })
-                .map(item => ({
+            const calculationColumnsCurtoInfluencer = (data) => {
+
+                return data.map(item => ({
                     marca: item?.marca_cliente,
                     acao: item?.acao,
                     influencer: item?.influencer,
@@ -85,172 +87,157 @@ class ReportsController {
                     formato: item?.format,
                     data: item?.createdAt,
                     url_publi: '',
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item.followersNumber,
+                    alcance_seguidores: item.followersNumber,
                     views: item?.visualizacoes || item?.views,
-                    engajamento: item?.engajamento,
-                    taxa_de_engajamento: '',
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_engajamento: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views),
                     curtidas: item?.curtidas,
                     compartilhamentos: item?.compartilhamentos,
                     comentarios: item?.comentarios
                 }))
+            }
 
-            const tableVideoCurtoMediaPlataforma = data
-                .filter(item => {
-                    const short = ['reels', 'tiktok', 'short']
-                    return short.includes(item.format.toLowerCase())
-                })
-                .map(item => ({
+            const calculationColumnsCurtoPlataforma = (data) => {
+
+                return data.map(item => ({
                     plataforma: item?.plataform,
                     formato: item?.format,
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item?.followersNumber,
+                    alcance_seguidores: item?.followersNumber,
                     views: item?.visualizacoes || item?.views,
                     taxa_views: '',
-                    engajamento: item?.engajamento,
-                    taxa_de_engajamento: '',
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_engajamento: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views),
                     curtidas: item?.curtidas,
                     compartilhamentos: item?.compartilhamentos,
                     comentarios: item?.comentarios
                 }))
+            }
 
-            reports.video_curto.table_v1.data = tableVideoCurtoMediaPlataforma
-            reports.video_curto.table_v2.data = tableVideoCurtoInfluencer
+            const calculationColumnsStoriesInfluencer = (data) => {
 
-
-            const tableStoriesInfluencer = data
-                .filter(item => {
-                    const short = ['story']
-                    return short.includes(item.format.toLowerCase())
-                })
-                .map(item => ({
+                return data.map(item => ({
                     marca: item?.marca_cliente,
                     acao: item?.acao,
                     influencer: item?.influencer,
                     plataforma: item?.plataform,
                     formato: item?.format,
                     data: item?.createdAt,
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item?.followers,
+                    alcance_seguidores: item?.followersNumber,
                     impressoes: item?.impressoes,
                     avancar: item?.avancar,
-                    engajamento: item?.engajamento,
-                    taxa_de_engajamento: '',
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_engajamento: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views),
                     cliques_no_link: item?.cliques_link,
                     clique_no_arroba: item?.clique_arroba,
                     clique_hashtag: item?.clique_hashtag
                 }))
+            }
 
-            const tableStoriesMediaPlataforma = data
-                .filter(item => {
-                    const short = ['story']
-                    return short.includes(item.format.toLowerCase())
-                })
-                .map(item => ({
+            const calculationColumnsStoriesPlataform = (data) => {
+
+                return data.map(item => ({
                     plataforma: item?.plataform,
                     formato: item?.format,
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item?.followersNumber,
+                    alcance_seguidores: item?.followersNumber,
                     impressoes: item?.impressoes,
                     avancar: item?.avancar,
-                    engajamento: item?.engajamento,
-                    taxa_de_engajamento: '',
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_engajamento: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views),
                     cliques_no_link: item?.cliques_link,
                     clique_no_arroba: item?.clique_arroba,
                     clique_hashtag: item?.clique_hashtag
                 }))
+            }
 
-            reports.stories.table_v1.data = tableStoriesMediaPlataforma
-            reports.stories.table_v2.data = tableStoriesInfluencer
+            const calculationColumnsVideoLongoInfluencer = (data) => {
 
-
-            const tableVideoLongoInfluencer = data
-                .filter(item => {
-                    const plataform = ['youtube']
-                    return plataform.includes(item.plataform.toLowerCase())
-                })
-                .map(item => ({
+                return data.map(item => ({
                     marca: item?.marca_cliente,
                     acao: item?.acao,
                     influencer: item?.influencer,
                     url_publi: '',
                     data: item?.createdAt,
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item?.followersNumber,
+                    alcance_seguidores: item?.followersNumber,
                     impressoes: item?.impressoes,
                     visualizacoes: item?.visualizacoes,
-                    taxa_de_retencao: item?.taxa_retencao,
-                    engajamento: item?.engajamento,
+                    taxa_de_retencao: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views) || item.taxa_de_retencao,
+                    engajamento: calculateTotalInteractions(item),
                     eng_youtube: '',
                     curtidas: item?.curtidas,
                     comentarios: item?.comentarios,
                 }))
+            }
+            
+            const calculationColumnsVideoLongoPlataform = (data) => {
 
-            const tableVideoLongoPlataforma = data
-                .filter(item => {
-                    const plataform = ['youtube']
-                    return plataform.includes(item.plataform.toLowerCase())
-                })
-                .map(item => ({
+                return data.map(item => ({
                     plataforma: item?.plataform,
                     formato: item?.format,
-                    seguidores: item?.seguidores,
-                    alcance_seguidores: '',
+                    seguidores: item.followersNumber,
+                    alcance_seguidores: item?.followersNumber,
                     impressoes: item?.impressoes,
                     visualizacoes: item?.visualizacoes,
-                    taxa_de_retencao: item?.taxa_retencao,
-                    engajamento: item?.engajamento,
+                    taxa_de_retencao: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views) || item.taxa_de_retencao,
+                    engajamento: calculateTotalInteractions(item),
                     eng_youtube: '',
                     curtidas: item?.curtidas,
                     comentarios: item?.comentarios,
                 }))
-
-            reports.video_longo.table_v1.data = tableVideoLongoPlataforma
-            reports.video_longo.table_v2.data = tableVideoLongoInfluencer
+            }
 
 
-            const tableOutrosInfluencer = data
-                .filter(item => {
-                    const plataform = ['twitter']
-                    return plataform.includes(item.plataform.toLowerCase())
-                })
-                .map(item => ({
+            const calculationColumnsOutrosInfluencer = (data) => {
+
+                return data.map(item => ({
                     marca: item?.marca_cliente,
                     acao: item?.acao,
                     influencer: item?.influencer,
                     formato: item?.format,
                     url_publi: '',
-                    seguidores: item?.seguidores,
+                    seguidores: item.followersNumber,
                     impressoes: item?.impressoes,
-                    engajamento: item?.engajamento,
-                    taxa_de_retencao: item?.taxa_retencao,
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_retencao: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views) || item.taxa_de_retencao,
                     curtidas: item?.curtidas,
                     comentarios: item?.comentarios,
                     retwit: item?.retwit,
                     cliques_link: item?.cliques_link,
                 }))
+            }
+            
+            const calculationColumnsOutrosPlataform = (data) => {
 
-            const tableOutrosPlataforma = data
-                .filter(item => {
-                    const plataform = ['twitter']
-                    return plataform.includes(item.plataform.toLowerCase())
-                })
-                .map(item => ({
+                return data.map(item => ({
                     plataforma: item?.plataform,
                     formato: item?.format,
-                    seguidores: item?.seguidores,
+                    seguidores: item.followersNumber,
                     impressoes: item?.impressoes,
-                    engajamento: item?.engajamento,
-                    taxa_de_retencao: item?.taxa_retencao,
+                    engajamento: calculateTotalInteractions(item),
+                    taxa_de_retencao: calculateEngagementRate(calculateTotalInteractions(item), item?.visualizacoes || item?.views) || item.taxa_de_retencao,
                     curtidas: item?.curtidas,
                     comentarios: item?.comentarios,
                     retwit: item?.retwit,
                     cliques_link: item?.cliques_link,
                 }))
+            }
 
-            reports.outras_plataformas.table_v1.data = tableOutrosPlataforma
-            reports.outras_plataformas.table_v2.data = tableOutrosInfluencer
 
+            reports.video_curto.table_v1.data = calculationColumnsCurtoPlataforma(filteredData(data, ['reels', 'tiktok', 'short']))
+            reports.video_curto.table_v2.data = calculationColumnsCurtoInfluencer(filteredData(data, ['reels', 'tiktok', 'short']))
+
+            reports.stories.table_v1.data = calculationColumnsStoriesPlataform(filteredData(data, ['story']))
+            reports.stories.table_v2.data = calculationColumnsStoriesInfluencer(filteredData(data, ['story']))
+
+            reports.video_longo.table_v1.data = calculationColumnsVideoLongoPlataform(filteredData(data, ['youtube']))
+            reports.video_longo.table_v2.data = calculationColumnsVideoLongoInfluencer(filteredData(data, ['youtube']))
+
+            reports.video_longo.table_v1.data = calculationColumnsOutrosPlataform(filteredData(data, ['twitter']))
+            reports.video_longo.table_v2.data = calculationColumnsOutrosInfluencer(filteredData(data, ['twitter']))
 
             //indicadores
             // Contagem influenciadores Distintos
@@ -316,5 +303,25 @@ class ReportsController {
         }
     }
 }
+
+
+const calculateTotalInteractions = (item) => {
+    const curtidas = Number(item.curtidas) || 0;
+    const compartilhamentos = Number(item.compartilhamentos) || 0;
+    const comentarios = Number(item.comentarios) || 0;
+    const salvamentos = Number(item.salvamentos) || 0;
+    return curtidas + compartilhamentos + comentarios + salvamentos;
+};
+
+// Função para calcular a taxa de engajamento
+const calculateEngagementRate = (totalInteractions, totalViews) => {
+    totalViews = (Number(totalViews.replace('.', '').replace(',', '.')))
+    const calculationValue = totalViews > 0 ? (totalInteractions / totalViews) * 100 : 0;
+    
+    // Arredonda para duas casas decimais e retorna o valor em formato porcentagem
+    const formattedValue = (calculationValue).toFixed(2); // Arredonda para 2 casas decimais
+    return `${formattedValue}%`; // Retorna como string com porcentagem
+};
+
 
 module.exports = new ReportsController()

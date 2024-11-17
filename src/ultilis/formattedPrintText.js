@@ -177,7 +177,7 @@ async function processInstagram(text, format) {
 
     }
 
-    if(format.toLowerCase() === 'story'){
+    if (format.toLowerCase() === 'story') {
         const cliqueArroba = text.match(/(?:toques\s*em\s*figurinhas|cliques?\s+no\s+arroba)\s*[:\-]?\s*(\d+[,.]?\d*)/is);
         if (cliqueArroba) {
             extractedData.clique_arroba = parseInt(cliqueArroba[1].replace(/[,.]/g, ''), 10);
@@ -244,7 +244,8 @@ async function processTikTok(text) {
             const completoIndex = result.indexOf("completo");
             if (completoIndex >= 0) {
                 extractedData.tempo_medio_visualizacao = extractedData.tempo_medio_visualizacao || result[completoIndex + 1];
-                extractedData.taxa_retencao = extractedData.taxa_retencao || (result[completoIndex + 3] + '%');
+                // extractedData.taxa_retencao = extractedData.taxa_retencao || (result[completoIndex + 3] + '%');
+                extractedData.taxa_retencao = extractedData.taxa_retencao || includesPorcentage(result[completoIndex + 3]);
 
                 if (result[completoIndex + 3]) {
                     const porcentageVisualizacoesCompletas = parseFloat(result[completoIndex + 3]?.replace(',', '.'))
@@ -488,6 +489,14 @@ function convertToNumeric(value) {
     }
 
     return numericValue;
+}
+
+function includesPorcentage(value) {
+    if (!value) return null
+    if (typeof value == 'string' && value.includes('%')) {
+        return value
+    }
+    return value + '%'
 }
 
 module.exports = {
