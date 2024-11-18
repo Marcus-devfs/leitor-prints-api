@@ -85,7 +85,7 @@ class TextDataFilesController {
                     Avancar: Number(textData.avancar) || 0,
                     Voltar: Number(textData.voltar) || 0,
                     Sair: Number(textData.sair) || 0,
-                    'Proximo Story': (textData.proximo_story) || 0,
+                    'Proximo Story': Number(textData.proximo_story) || 0,
                     'Visitas ao Perfil': Number(textData.visitas_perfil) || 0,
                     'Comecaram a Seguir': Number(textData.comecaram_seguir) || 0,
                     'Tempo de Stories em Segundos': textData.tempo_stories || 0,

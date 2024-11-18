@@ -172,7 +172,7 @@ class ReportsController {
                     comentarios: item?.comentarios,
                 }))
             }
-            
+
             const calculationColumnsVideoLongoPlataform = (data) => {
 
                 return data.map(item => ({
@@ -209,7 +209,7 @@ class ReportsController {
                     cliques_link: item?.cliques_link,
                 }))
             }
-            
+
             const calculationColumnsOutrosPlataform = (data) => {
 
                 return data.map(item => ({
@@ -315,9 +315,9 @@ const calculateTotalInteractions = (item) => {
 
 // Função para calcular a taxa de engajamento
 const calculateEngagementRate = (totalInteractions, totalViews) => {
-    totalViews = (Number(totalViews.replace('.', '').replace(',', '.')))
+    if (typeof totalViews === 'string') totalViews = (Number(totalViews.replace('.', '').replace(',', '.')))
     const calculationValue = totalViews > 0 ? (totalInteractions / totalViews) * 100 : 0;
-    
+
     // Arredonda para duas casas decimais e retorna o valor em formato porcentagem
     const formattedValue = (calculationValue).toFixed(2); // Arredonda para 2 casas decimais
     return `${formattedValue}%`; // Retorna como string com porcentagem

@@ -168,7 +168,8 @@ async function processInstagram(text, format) {
         const contasAlcancadasIndex = result.indexOf('alcançadas');
 
         if (reproducaoIndex !== -1 && result[reproducaoIndex + 1]) {
-            extractedData.visualizacoes = result[reproducaoIndex + 1]
+            const formattedValue = result[reproducaoIndex + 1].replace(/[,.]/g, '');
+            extractedData.visualizacoes = parseInt(formattedValue, 10) || 0;
         }
 
         if (contasAlcancadasIndex !== -1 && result[contasAlcancadasIndex + 1]) {
