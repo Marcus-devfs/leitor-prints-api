@@ -61,6 +61,10 @@ const fileTextDataSchema = new Schema({
         type: String,
         default: null
     },
+    respostas: {
+        type: String,
+        default: null
+    },
     tempo_medio_visualizacao: {
         type: String,
         default: null

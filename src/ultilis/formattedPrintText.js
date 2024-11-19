@@ -117,6 +117,7 @@ async function processInstagram(text, format) {
         avancar: /avan[çc]o\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         voltar: /voltar\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         sair: /saiu\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+        respostas: /resposta\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         proximo_story: /pr[óo]ximo\s+story\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         visitas_perfil: /visitas?\s+ao\s+perfil\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         comecaram_seguir: /come[çc]aram?\s+a?\s*seguir\s*[:\-]?\s*(\d+[,.]?\d*)/is,
@@ -150,7 +151,8 @@ async function processInstagram(text, format) {
         curtidas: null,
         salvamentos: null,
         compartilhamentos: null,
-        comentarios: null
+        comentarios: null,
+        respostas: null
     };
 
     // Itera sobre as linhas e associa as palavras-chave aos campos do extractedData
@@ -185,22 +187,30 @@ async function processInstagram(text, format) {
         }
     }
 
-    const alcanceMatch = text.match(/alcance\s*i?\s*[:\-]?\s*(\d+[,.]?\d*)[\s\S]*?contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    let alcanceMatch = ''
+
+    if (format.toLowerCase() === 'story') {
+        alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    } else {
+        alcanceMatch = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    }
+
     if (alcanceMatch) {
-        const porcentagens = text.match(/(\d+[,.]?\d*)%/g);
+        const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
+        extractedData.alcance = extractedData.alcance || alcanceFormatted
+        const alcanceIndex = alcanceMatch.index
+
+        // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
+        const nearbyText = text.slice(Math.max(0, alcanceIndex - 50), alcanceIndex); // Pegamos até 50 caracteres antes para analisar
+        const porcentagens = nearbyText.match(/(\d+[,.]?\d*)%/g); // Captura todas as porcentagens no trecho próximo
+
         if (porcentagens && porcentagens.length >= 2) {
-            let firstPorcentage = 0
-            let secondPorcentage = 0
-            if (porcentagens.length > 2) {
-                firstPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
-                secondPorcentage = parseFloat(porcentagens[2]?.replace(',', '.'));
-            } else {
-                firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
-                secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
-            }
+            let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
+            let secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
+
             if ((firstPorcentage + secondPorcentage) === 100) {
-                extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, extractedData.alcance));
-                extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, extractedData.alcance));
+                extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted))
+                extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted))
             }
         }
     }
