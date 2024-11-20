@@ -92,7 +92,7 @@ class TextDataFilesController {
                     Curtidas: Number(textData.curtidas) || 0,
                     Salvamentos: Number(textData.salvamentos) || 0,
                     Compartilhamentos: Number(textData.compartilhamentos) || 0,
-                    Comentarios: Number(textData.comentarios) || 0
+                    'Comentarios/Respostas': Number(textData.comentarios) || 0
                 });
             }));
 

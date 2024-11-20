@@ -13,7 +13,13 @@ function formatPorcentagem(value) {
     return new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 2 }).format(formattedValue / 100);
 }
 
+const calculationPercentageOfValue = (percentage, total) => {
+    const valueCalculation = (total * percentage) / 100;
+    return parseFloat(valueCalculation);
+};
+
 module.exports = {
     formattDateAndHour,
-    formatPorcentagem
+    formatPorcentagem,
+    calculationPercentageOfValue
 }

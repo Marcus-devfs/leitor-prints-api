@@ -1,5 +1,7 @@
 //Redes Sociais e formatos
 
+const { calculationPercentageOfValue } = require(".");
+
 //Instagram - Feed - OK
 //Instagram - Reels - OK
 //Instagram - Story - OK
@@ -117,7 +119,6 @@ async function processInstagram(text, format) {
         avancar: /avan[çc]o\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         voltar: /voltar\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         sair: /saiu\s*[:\-]?\s*(\d+[,.]?\d*)/i,
-        respostas: /resposta\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         proximo_story: /pr[óo]ximo\s+story\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         visitas_perfil: /visitas?\s+ao\s+perfil\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         comecaram_seguir: /come[çc]aram?\s+a?\s*seguir\s*[:\-]?\s*(\d+[,.]?\d*)/is,
@@ -125,7 +126,8 @@ async function processInstagram(text, format) {
         curtidas: /curtidas\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         salvamentos: /salvamentos\s*[:\-]?\s*(\d+[,.]?\d*)/i,
         compartilhamentos: /compartilhamentos\s*[:\-]?\s*(\d+[,.]?\d*)/i,
-        comentarios: /coment[áa]rios\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+        // comentarios: /coment[áa]rios\s*[:\-]?\s*(\d+[,.]?\d*)/i,
+        comentarios: /(?:coment[áa]rios|respostas?)\s*[:\-]?\s*(\d+[,.]?\d*)/i,
     };
 
     let extractedData = {
@@ -187,22 +189,31 @@ async function processInstagram(text, format) {
         }
     }
 
-    let alcanceMatch = ''
+    const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    const alcanceReels = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
 
-    if (format.toLowerCase() === 'story') {
-        alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-    } else {
-        alcanceMatch = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-    }
+    // if (format.toLowerCase() === 'story') {
+    //     alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    // } else {
+    //     alcanceMatch = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+    // }
 
-    if (alcanceMatch) {
+    if (alcanceMatch || alcanceReels) {
         const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
         extractedData.alcance = extractedData.alcance || alcanceFormatted
         const alcanceIndex = alcanceMatch.index
+        const alcanceReelsIndex = alcanceReels.index
 
         // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
         const nearbyText = text.slice(Math.max(0, alcanceIndex - 50), alcanceIndex); // Pegamos até 50 caracteres antes para analisar
-        const porcentagens = nearbyText.match(/(\d+[,.]?\d*)%/g); // Captura todas as porcentagens no trecho próximo
+        const nearbyTextReels = text.slice(
+            Math.max(0, alcanceReelsIndex - 50),
+            alcanceReelsIndex + 50
+        );
+
+        let porcentagens = nearbyText.match(/(\d+[,.]?\d*)%/g); // Captura todas as porcentagens no trecho próximo
+
+        if (format.toLowerCase() === 'reels') porcentagens = nearbyTextReels.match(/(\d+[,.]?\d*)%/g);
 
         if (porcentagens && porcentagens.length >= 2) {
             let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
@@ -265,6 +276,12 @@ async function processTikTok(text) {
                     extractedData.visualizacoes_completas = extractedData.visualizacoes_completas || (result[completoIndex + 3]);
                 }
             }
+        }
+
+        const seguidoresIndex = result.indexOf("seguidores");
+        if (seguidoresIndex >= 0) {
+            extractedData.seguidores_alcancados = (result[seguidoresIndex - 2]);
+            extractedData.nao_seguidores_integram = (result[seguidoresIndex - 3]);
         }
 
 
@@ -463,10 +480,6 @@ async function processFacebook(text) {
     }
 }
 
-const calculationPercentageOfValue = (percentage, total) => {
-    const valueCalculation = (total * percentage) / 100;
-    return parseFloat(valueCalculation);
-};
 
 // Função para remover acentos de uma string
 const removeAccents = (str) => {

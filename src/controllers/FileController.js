@@ -4,6 +4,7 @@ const File = require('../models/File')
 const { formattedTextFromImage } = require('../ultilis/formattedPrintText');
 const FileTextData = require('../models/FileTextData');
 const { deleteObjectFromS3 } = require('../config/s3');
+const { calculationPercentageOfValue } = require('../ultilis');
 
 const textract = new TextractClient({ region: 'us-east-1' });
 
@@ -97,6 +98,19 @@ exports.upload = async (req, res) => {
                      // Se for string e já houver valor, mantém o valor existente no banco
                   } else if (typeof newValue === 'string' && typeof dbValue === 'string') {
                      updatedFields[fileKey] = dbValue; // Mantém o valor existente no banco
+                  }
+
+                  if ((fileKey === 'seguidores_alcancados' || fileKey === 'nao_seguidores_integram') && plataform?.toLowerCase() === 'tiktok') {
+                     const visualizations = fileTextData.visualizacoes || analyticsDataTranscription.visualizacoes;
+                     const porcentageString = dbValue || newValue;
+
+                     if (visualizations && porcentageString) {
+                        const formattedPorcentage = parseFloat(porcentageString.replace('%', '').replace(',', '.'));
+
+                        if (!isNaN(formattedPorcentage)) {
+                           updatedFields[fileKey] = Math.round(calculationPercentageOfValue(formattedPorcentage, visualizations))
+                        }
+                     }
                   }
                }
             }
