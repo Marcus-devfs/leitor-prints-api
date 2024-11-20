@@ -50,6 +50,22 @@ class TextDataFilesController {
             const user = await User.findById(userId)
             let textFileData = [];
 
+            const formatterPorcentage = (value) => {
+                if (!value) return 0
+                if (value.includes('%')) {
+                    return value.replace('.', ',')
+                }
+                return value
+            }
+
+            const verifyPorcentage = (value) => {
+                if (!value) return 0
+                if (!Number(value)) {
+                    return formatterPorcentage(value)
+                }
+                return Number(value)
+            }
+
             await Promise.all(textDataIds.map(async (item) => {
                 const textData = await FileTextData.findById(item);
 
@@ -73,12 +89,12 @@ class TextDataFilesController {
                     Impressoes: Number(textData.impressoes) || 0,
                     Visualizacoes: Number(textData.visualizacoes) || 0,
                     Alcance: Number(textData.alcance) || 0,
-                    'Seguidores Alcancados': Number(textData.seguidores_alcancados) || 0,
-                    'Nao Seguidores': Number(textData.nao_seguidores_integram) || 0,
+                    'Seguidores Alcancados': verifyPorcentage(textData.seguidores_alcancados) || 0,
+                    'Nao Seguidores': verifyPorcentage(textData.nao_seguidores_integram) || 0,
                     'Visualizacoes Completas': Number(textData.visualizacoes_completas) || 0,
-                    'Taxa de Retencao': textData.taxa_retencao || 0,
+                    'Taxa de Retencao': formatterPorcentage(textData.taxa_retencao),
                     'Tempo Medio de Visualizacao': Number(textData.tempo_medio_visualizacao) || 0,
-                    'Taxa For You': textData.taxa_for_you || 0,
+                    'Taxa For You': formatterPorcentage(textData.taxa_for_you),
                     'Cliques no Link': Number(textData.cliques_link) || 0,
                     'Clique no @': Number(textData.clique_arroba) || 0,
                     'Clique na Hashtag': Number(textData.clique_hashtag) || 0,

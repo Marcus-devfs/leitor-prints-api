@@ -189,39 +189,57 @@ async function processInstagram(text, format) {
         }
     }
 
-    const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-    const alcanceReels = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
 
-    // if (format.toLowerCase() === 'story') {
-    //     alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-    // } else {
-    //     alcanceMatch = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-    // }
+    if (format.toLowerCase() === 'story') {
+        const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
 
-    if (alcanceMatch || alcanceReels) {
-        const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
-        extractedData.alcance = extractedData.alcance || alcanceFormatted
-        const alcanceIndex = alcanceMatch.index
-        const alcanceReelsIndex = alcanceReels.index
+        if (alcanceMatch) {
+            const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
+            extractedData.alcance = extractedData.alcance || alcanceFormatted
+            const alcanceIndex = alcanceMatch.index
 
-        // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
-        const nearbyText = text.slice(Math.max(0, alcanceIndex - 50), alcanceIndex); // Pegamos até 50 caracteres antes para analisar
-        const nearbyTextReels = text.slice(
-            Math.max(0, alcanceReelsIndex - 50),
-            alcanceReelsIndex + 50
-        );
+            // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
+            const nearbyText = text.slice(Math.max(0, alcanceIndex - 50), alcanceIndex); // Pegamos até 50 caracteres antes para analisar
 
-        let porcentagens = nearbyText.match(/(\d+[,.]?\d*)%/g); // Captura todas as porcentagens no trecho próximo
+            let porcentagens = nearbyText.match(/(\d+[,.]?\d*)%/g); // Captura todas as porcentagens no trecho próximo
 
-        if (format.toLowerCase() === 'reels') porcentagens = nearbyTextReels.match(/(\d+[,.]?\d*)%/g);
+            if (porcentagens && porcentagens.length >= 2) {
+                let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
+                let secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
 
-        if (porcentagens && porcentagens.length >= 2) {
-            let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
-            let secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
+                if ((firstPorcentage + secondPorcentage) === 100) {
+                    extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted))
+                    extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted))
+                }
+            }
+        }
+    }
 
-            if ((firstPorcentage + secondPorcentage) === 100) {
-                extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted))
-                extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted))
+    if (format.toLowerCase() === 'reels') {
+        const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+        const alcanceReels = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+
+        if (alcanceReels) {
+            const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
+            extractedData.alcance = extractedData.alcance || alcanceFormatted
+            const alcanceReelsIndex = alcanceReels.index
+
+            // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
+            const nearbyTextReels = text.slice(
+                Math.max(0, alcanceReelsIndex - 50),
+                alcanceReelsIndex + 50
+            );
+
+            let porcentagens = nearbyTextReels.match(/(\d+[,.]?\d*)%/g);// Captura todas as porcentagens no trecho próximo
+
+            if (porcentagens && porcentagens.length >= 2) {
+                let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
+                let secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
+
+                if ((firstPorcentage + secondPorcentage) === 100) {
+                    extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted))
+                    extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted))
+                }
             }
         }
     }
@@ -233,6 +251,7 @@ async function processTikTok(text) {
     try {
         let extractedData = {
             visualizacoes: null,
+            alcance: null,
             curtidas: null,
             comentarios: null,
             compartilhamentos: null,
@@ -296,6 +315,29 @@ async function processTikTok(text) {
             }
         }
 
+        if (result.includes('total') && result.includes('de') && result.includes('total') && result.includes('de') && result.includes('espectadores') && result.includes('i')) {
+
+            const totalIndex = result.findIndex((item, idx) =>
+                item.toLowerCase() === 'total' &&
+                result[idx + 1] === 'de' &&
+                result[idx + 2] === 'espectadores' &&
+                result[idx + 3] === 'i'
+            );
+
+            if (totalIndex >= 0) {
+                // O número esperado está na posição seguinte à sequência
+                const espectadoresValue = result[totalIndex + 4];
+
+                // Verifica se o valor é numérico
+                if (!isNaN(Number(espectadoresValue))) {
+                    extractedData.alcance = espectadoresValue
+                } else {
+                    console.log('Valor encontrado após "Total de espectadores i" não é numérico:', espectadoresValue);
+                }
+            } else {
+                console.log('"Total de espectadores i" não encontrado.');
+            }
+        }
 
         return extractedData;
     } catch (error) {
