@@ -216,29 +216,27 @@ async function processInstagram(text, format) {
     }
 
     if (format.toLowerCase() === 'reels') {
-        const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
-        const alcanceReels = text.match(/alcance\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+        // const alcanceMatch = text.match(/contas\s*alcançadas\s*[:\-]?\s*(\d+[,.]?\d*)/i);
+        const result = text.toLowerCase().split(/\s+/).map(word => removeAccents(word));
+
+        const alcanceReels = result.indexOf('alcance')
 
         if (alcanceReels) {
-            const alcanceFormatted = parseInt(alcanceMatch[1].replace(/[.,]/g, ''));
-            extractedData.alcance = extractedData.alcance || alcanceFormatted
-            const alcanceReelsIndex = alcanceReels.index
+            const alcanceFormatted = parseInt(result[alcanceReels + 2]);
+            extractedData.alcance = extractedData.alcance || alcanceFormatted;
 
-            // Extrair texto próximo ao alcanceIndex (-5 e -4 palavras anteriores)
-            const nearbyTextReels = text.slice(
-                Math.max(0, alcanceReelsIndex - 50),
-                alcanceReelsIndex + 50
-            );
+            // Procurar as porcentagens próximas à posição do alcance
+            const nearbyWords = result.slice(alcanceReels, alcanceReels + 20); // Pega palavras ao redor do alcance
+            const porcentagens = nearbyWords.filter(word => word.includes('%')); // Filtra as porcentagens
 
-            let porcentagens = nearbyTextReels.match(/(\d+[,.]?\d*)%/g);// Captura todas as porcentagens no trecho próximo
-
-            if (porcentagens && porcentagens.length >= 2) {
-                let firstPorcentage = parseFloat(porcentagens[0]?.replace(',', '.'));
-                let secondPorcentage = parseFloat(porcentagens[1]?.replace(',', '.'));
-
+            if (porcentagens.length >= 2) {
+                let firstPorcentage = parseFloat(porcentagens[0].replace(',', '.'));
+                let secondPorcentage = parseFloat(porcentagens[1].replace(',', '.'));
+        
+                // Se as porcentagens somam 100
                 if ((firstPorcentage + secondPorcentage) === 100) {
-                    extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted))
-                    extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted))
+                    extractedData.seguidores_alcancados = Math.round(calculationPercentageOfValue(firstPorcentage, alcanceFormatted));
+                    extractedData.nao_seguidores_integram = Math.round(calculationPercentageOfValue(secondPorcentage, alcanceFormatted));
                 }
             }
         }
