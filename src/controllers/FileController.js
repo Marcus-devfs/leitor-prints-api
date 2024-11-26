@@ -194,7 +194,7 @@ exports.uploadAndProcessText = async (req, res) => {
 
       // Extrair o texto detectado
 
-      const textractResultBlocks = textractResult.Blocks;
+      const textractResultBlocks = textractResult.Blocks; 
       let extractedFormattedText = '';
       textractResultBlocks.forEach(block => {
          if (block.BlockType === 'LINE') {
