@@ -1,5 +1,9 @@
 function formattDateAndHour() {
     const data = new Date();
+
+    // Subtrai 3 horas do horário atual
+    data.setHours(data.getHours() - 3);
+    
     const ano = data.getFullYear();
     const mes = String(data.getMonth() + 1).padStart(2, '0');
     const dia = String(data.getDate()).padStart(2, '0');
