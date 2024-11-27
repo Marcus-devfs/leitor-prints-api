@@ -24,7 +24,7 @@ async function sendPlanilha(buffer, user, fileName) {
         const resultadoEmail = await sendGrid.configEmailSendGrid(message);
         return resultadoEmail;
     } catch (error) {
-        console.log(error)
+        console.log('erro ao enviar email: ', error)
         return error;
     }
 }
