@@ -5,8 +5,12 @@ function formattDateAndHour() {
     const dia = String(data.getDate()).padStart(2, '0');
     const hora = String(data.getHours()).padStart(2, '0');
     const minutos = String(data.getMinutes()).padStart(2, '0');
-    return `${ano}${mes}${dia}${hora}${minutos}`;
+    const segundos = String(data.getSeconds()).padStart(2, '0');
+
+    // Formato para nome de arquivo: YYYY-MM-DD_HH-mm-ss
+    return `${ano}-${mes}-${dia}_${hora}-${minutos}`;
 }
+
 
 function formatPorcentagem(value) {
     const formattedValue = typeof value === 'string' ? parseFloat(value) : value;

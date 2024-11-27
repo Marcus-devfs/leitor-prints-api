@@ -114,9 +114,12 @@ class TextDataFilesController {
 
             // Gerar a planilha usando XLSX em um Buffer
             const fileName = `${formattDateAndHour()}_extracao_dottie`
+            const sheetName = `${formattDateAndHour()}`
+
+            console.log(fileName)
             const ws = XLSX.utils.json_to_sheet(textFileData, { header: ColumnsPlanilha });
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, fileName);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
             const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
 
             // Enviar o e-mail com o Excel como anexo
