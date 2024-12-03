@@ -6,7 +6,7 @@ const FileTextData = require('../models/FileTextData');
 const { deleteObjectFromS3 } = require('../config/s3');
 const { calculationPercentageOfValue } = require('../ultilis');
 
-const textract = new TextractClient({ region: 'us-east-1' });
+const textract = new TextractClient({ region: 'us-east-2' });
 
 exports.upload = async (req, res) => {
    try {

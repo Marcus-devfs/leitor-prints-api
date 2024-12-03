@@ -1,7 +1,7 @@
 const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 require('dotenv').config();
 
-const s3Client = new S3Client({ region: 'us-east-1' });
+const s3Client = new S3Client({ region: 'us-east-2' });
 
 
 const deleteObjectFromS3 = async (key) => {
